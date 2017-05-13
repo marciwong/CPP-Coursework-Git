@@ -16,10 +16,7 @@ using namespace std;
 double mean(vector<double> input);
 double standardDeviation(vector<double> input , double mean);
 
-Company::Company()
-{
-
-};
+Company::Company(){ };
 
 Company::Company(std::vector < std::vector<double> > input, int i)
 {
@@ -34,17 +31,20 @@ Company::Company(std::vector < std::vector<double> > input, int i)
 
 };
 
-// void Company::getCompanyReturn(std::vector < vector<double> > input, i)
-// {
-//     double returnArray[700];
-//     for (j = 0; j <700, j++)
-//     {
-//       returnArray[j] = input[i][j];
-//     }
+void getCompanyMeanRet()
+{
+ return meanRet;
+};
 
-//     return allReturnArray;
 
-// };
+Portfolio::Portfolio(){ };
+
+Portfolio::Portfolio(std::vector< std::vector<double> > returnVector, int i, int j)
+{
+    int N = returnVector.sizeof();
+
+
+};
 
 double mean(vector<double> input)
 {      int sum = 0;

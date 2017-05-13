@@ -24,8 +24,9 @@ class Portfolio
 		std::vector<double> weight;
 
 	public:
-		void getCovariance();
-
+		Portfolio();
+		Portfolio(std::vector< std::vector<double> > returnVector, int i, int j);
+		
 };
 
 class Company
@@ -41,6 +42,7 @@ class Company
 	public:
 		Company();
 		Company(std::vector< vector<double> > input, int i );
+		void getCompanyMeanRet();
 		// void getCompanyReturn(std::vector<vector<double> > input)
 		// void getInSampleArray();
 		// void getOutSampleArray();

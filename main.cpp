@@ -49,6 +49,15 @@ int main()
   		vectorOfCompanyRet.push_back(Company);
   }
 
+  std::vector<double> vectorOfCompanyMeanRet;
+  for (int i = 0; i < 83; i++)
+  {
+      vectorOfCompanyMeanRet[i] = vectorOfCompanyRet[i].getCompanyMeanRet();
+  }
+
+  Portfolio fullSamplePort;
+
+
 }
 
 double string_to_double( const std::string& s )
