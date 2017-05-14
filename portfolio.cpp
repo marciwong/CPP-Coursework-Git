@@ -15,6 +15,7 @@ using namespace std;
 
 double mean(vector<double> input);
 double standardDeviation(vector<double> input , double mean);
+std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, double size, double timeLength);
 
 Company::Company(){ };
 
@@ -22,7 +23,7 @@ Company::Company(std::vector < std::vector<double> > input, int i, int timeLengt
 {
     int Days = input.size();
     double returnArray[timeLength];
-    for (int j = 0; j < timeLength; j++)
+    for (int j = 0 ; j < timeLength; j++)
     {
       allReturnVector.push_back (input[i][j]);
     }
@@ -53,15 +54,19 @@ Portfolio::Portfolio(std::vector< std::vector<double> > returnVector, std::vecto
     }
 
     std::vector < std::vector<double> > covarianceMet;
-    covarianceMet = covariance(returnVector, noOfCompany, time);
+
+    covarianceMet = getCovariance(returnVector, noOfCompany, time);
+    
     std::vector< std::vector<double> > inverseMet;
-    for (int i = 0; i < noOfCompany; i++)
-    {
-      for (int j = 0; j < noOfCompany; j++)
-      {
-        inverseMet[i][j] = covariance[i][j];
-      }
-    }
+    inverseMet = covarianceMet;
+
+    // for (int i = 0; i < noOfCompany; i++)
+    // {
+    //   for (int j = 0; j < noOfCompany; j++)
+    //   {
+    //     inverseMet[i][j] = covarianceMet[i][j];
+    //   }
+    // }
    
     inverseMet.push_back(meanRetCompany); 
     inverseMet.push_back(eVector);
@@ -88,12 +93,12 @@ double standardDeviation(vector<double> input , double mean)
 
        return sqrt(sumSq / (input.size()-1));
 }
-std::vector< std::vector<double> > covariance( std::vector< std::vector<double> > returnVector, double size, double timeLength)
+std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, double size, double timeLength)
 {
 
     std::vector<double> x;
     std::vector<double> y;
-    std::vector<std:: vector<double> > cov;
+    std::vector < std:: vector<double> > cov;
     for(int i = 0 ; i < size ; i++)
     {
       for (int k = 0; i < size ; k++ )
@@ -105,7 +110,7 @@ std::vector< std::vector<double> > covariance( std::vector< std::vector<double> 
           double xMean = mean(x);
           double yMean = mean(y);
           if (x.size() == size)
-            cov[i][j] += (x[i] - xMean) * (y[j] - yMean) / (size - 1);
+            cov[i][k] += (x[i] - xMean) * (y[j] - yMean) / (size - 1);
         }
        }
     }
