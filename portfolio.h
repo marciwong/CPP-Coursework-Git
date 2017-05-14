@@ -22,11 +22,12 @@ class Portfolio
 		double lambda;
 		double miu;
 		std::vector<double> weight;
+		double portRet;
 
 	public:
 		Portfolio();
-		Portfolio(std::vector< std::vector<double> > returnVector, int i, int j);
-		
+		Portfolio(std::vector< std::vector<double> > returnVector, std::vector<double> vectorOfCompanyMeanRet, double noOfCompany, double time);
+		std::vector<double> getPortfolioWeights;
 };
 
 class Company
@@ -36,13 +37,17 @@ class Company
 		double meanRet;
 		double stdev;
 		std::vector<double> allReturnVector;
+		std::vector<double> meanRetVector;
+
+		// double weight;   //**crucial add it in later
+
 		// std::vector<double> inSampleVector;
 		// std::vector<double> outSampleVector;
 
 	public:
 		Company();
-		Company(std::vector< vector<double> > input, int i );
-		void getCompanyMeanRet();
+		Company(std::vector< vector<double> > input, int i, int days );
+		double getCompanyMeanRet();
 		// void getCompanyReturn(std::vector<vector<double> > input)
 		// void getInSampleArray();
 		// void getOutSampleArray();

@@ -18,11 +18,11 @@ double standardDeviation(vector<double> input , double mean);
 
 Company::Company(){ };
 
-Company::Company(std::vector < std::vector<double> > input, int i)
+Company::Company(std::vector < std::vector<double> > input, int i, int timeLength)
 {
-    Days = input.size();
-    double returnArray[700];
-    for (int j = 0; j <700; j++)
+    int Days = input.size();
+    double returnArray[timeLength];
+    for (int j = 0; j < timeLength; j++)
     {
       allReturnVector.push_back (input[i][j]);
     }
@@ -31,7 +31,7 @@ Company::Company(std::vector < std::vector<double> > input, int i)
 
 };
 
-void getCompanyMeanRet()
+double Company::getCompanyMeanRet()
 {
  return meanRet;
 };
@@ -39,12 +39,37 @@ void getCompanyMeanRet()
 
 Portfolio::Portfolio(){ };
 
-Portfolio::Portfolio(std::vector< std::vector<double> > returnVector, int i, int j)
+Portfolio::Portfolio(std::vector< std::vector<double> > returnVector, std::vector<double> vectorOfCompanyMeanRet, double noOfCompany, double time)
 {
-    int N = returnVector.sizeof();
+    std::vector<double> eVector;
+    for (int i = 0; i < noOfCompany; i++)
+    {
+      eVector[i] = -1;
+    }
+    std::vector<double> meanRetCompany;
+    for (int i = 0; i < noOfCompany; i++)
+    {
+      meanRetCompany[i] = - 1 * vectorOfCompanyMeanRet[i];
+    }
 
+    std::vector < std::vector<double> > covarianceMet;
+    covarianceMet = covariance(returnVector, noOfCompany, time);
+    std::vector< std::vector<double> > inverseMet;
+    for (int i = 0; i < noOfCompany; i++)
+    {
+      for (int j = 0; j < noOfCompany; j++)
+      {
+        inverseMet[i][j] = covariance[i][j];
+      }
+    }
+   
+    inverseMet.push_back(meanRetCompany); 
+    inverseMet.push_back(eVector);
 
-};
+};  
+
+//==========================================================================================================
+//outside functions
 
 double mean(vector<double> input)
 {      int sum = 0;
@@ -62,4 +87,27 @@ double standardDeviation(vector<double> input , double mean)
        }
 
        return sqrt(sumSq / (input.size()-1));
+}
+std::vector< std::vector<double> > covariance( std::vector< std::vector<double> > returnVector, double size, double timeLength)
+{
+
+    std::vector<double> x;
+    std::vector<double> y;
+    std::vector<std:: vector<double> > cov;
+    for(int i = 0 ; i < size ; i++)
+    {
+      for (int k = 0; i < size ; k++ )
+       {  
+        for (int j = 0; j< timeLength ; j++)
+        {
+          x[j] = returnVector[i][j];
+          y[j] = returnVector[k][j];
+          double xMean = mean(x);
+          double yMean = mean(y);
+          if (x.size() == size)
+            cov[i][j] += (x[i] - xMean) * (y[j] - yMean) / (size - 1);
+        }
+       }
+    }
+    return cov;
 }

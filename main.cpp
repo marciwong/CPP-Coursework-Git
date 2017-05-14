@@ -45,19 +45,18 @@ int main()
   std::vector<Company> vectorOfCompanyRet;
   for (int i = 0 ; i < 83; i++)
   {
-  		Company Company;
-  		vectorOfCompanyRet.push_back(Company);
+  		Company company(returnVector,i, numberOfDays);
+  		vectorOfCompanyRet.push_back(company);
   }
 
   std::vector<double> vectorOfCompanyMeanRet;
   for (int i = 0; i < 83; i++)
   {
-      vectorOfCompanyMeanRet[i] = vectorOfCompanyRet[i].getCompanyMeanRet();
+
+      vectorOfCompanyMeanRet.push_back(vectorOfCompanyRet[i].getCompanyMeanRet());
   }
 
-  Portfolio fullSamplePort;
-
-
+  //Portfolio fullSamplePort(vectorOfCompanyMeanRet, vectorOfCompanyMeanRet, numberOfAssets,numberOfDays);
 }
 
 double string_to_double( const std::string& s )
