@@ -1,6 +1,6 @@
 #ifndef Portfolio_h
 #define Portfolio_h
-
+#include <armadillo>
 #include <cmath>
 #include <iostream>
 #include <string.h>

@@ -8,6 +8,9 @@
 #include <vector>
 #include <string>
 
+// git add --all
+// git commit -m "changed"
+// git push
 //g++ -o portfolio main.cpp portfolio.cpp csv.cp
 
 
