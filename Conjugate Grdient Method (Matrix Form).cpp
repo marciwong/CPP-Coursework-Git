@@ -18,7 +18,7 @@ std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<
                     for (int k = 0; st*s <= 0.000001; k++) //may use while loop instead
                         {   
                             mat sT = s.t();
-                            a(k,1) = sT * s
+                            a(k,1) = (sT * s)/(pT * Q * p)
                         }
                 }
 

@@ -38,7 +38,7 @@ int main()
   	{
   		for (int j = 0; j < 83; j++)
   	{
-  		returnVector[i][j] = returnMatrix[i][j]; //transforming 2x2 array into 2x2 vector
+  		returnVector[i][j] = returnMatrix[i][j]; //transforming 2d array into 2d vector
   	}
 
   	}

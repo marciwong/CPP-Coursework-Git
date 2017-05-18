@@ -18,8 +18,8 @@ using namespace std;
 double mean(vector<double> input);
 double standardDeviation(vector<double> input , double mean);
 std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, double size, double timeLength);
-std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<double> > inverseMet, std::vector< std::vector<double> > covarianceMet, int noOfCompany, mat tempInv, std::vector<double> vectorOfCompanyMeanRet);
-
+std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<double> > Q, std::vector< std::vector<double> > covarianceMet, int noOfCompany, mat tempInv, std::vector<double> vectorOfCompanyMeanRet);
+std::vector<std::vector <double> > Multiplication2D (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
 
 Company::Company(){ };
 
@@ -60,40 +60,34 @@ Portfolio::Portfolio(std::vector< std::vector<double> > returnVector, std::vecto
     std::vector < std::vector<double> > covarianceMet;
 
     covarianceMet = getCovariance(returnVector, noOfCompany, time);
-    
-    std::vector< std::vector<double> > inverseMet;
-    inverseMet = covarianceMet;
-   
-    inverseMet.push_back(meanRetCompany); 
-    inverseMet.push_back(eVector);
 
-    //inverseMet = join_vert(inverseMet, meanRetCompany, eVector);
-
-    for (int i = 0; i < noOfCompany; i++)
+    std:vector<double> negativeRet;
+    for (int i = 0; i<83; i++)
     {
-      inverseMet[83][i] = meanRetCompany[i];
-      inverseMet[84][i] = eVector[i];
+      negativeRet[i] = vectorOfCompanyMeanRet[i] * -1;
     }
 
-    //create 2 zeros into the matrix as shown in the pdf file
-    inverseMet[83][83] = 0;
-    inverseMet[83][84] = 0;
-    inverseMet[84][83] = 0;
-    inverseMet[84][84] = 0;
-
-    mat tempInv = randu(85,85); // using armadillo 
-
-    // assigning matrix tempInv = inverseMet
-    
-    for (int i = 0; i < noOfCompany + 2; i++)
+    for (int i = 0; i < 83; i++ )
     {
-      for (int j = 0; i < noOfCompany + 2; i++)
-      {
-        tempInv(i+1,j+1) = inverseMet[i][j];
-      }
+      covarianceMet[i].push_back(negativeRet[i]);
+      covarianceMet[i].push_back(eVector[i]);
     }
 
-  std::vector<std::vector<double> >portfolioReturnAndStd = getPortRetAndStdMat(inverseMet, covarianceMet, noOfCompany, tempInv, vectorOfCompanyMeanRet);
+    std:vector<double> negativeRetWithZero = negativeRet;
+
+    negativeRetWithZero.push_back(0);
+    negativeRetWithZero.push_back(0);
+
+    std:vector<double> eVectorWithZero = eVector;
+    eVectorWithZero.push_back(0);
+    eVectorWithZero.push_back(0);
+    
+    std::vector< std::vector<double> > Q;
+    Q = covarianceMet;
+    Q.push_back(negativeRetWithZero);
+    Q.push_back(eVectorWithZero);
+
+  std::vector<std::vector<double> >portfolioReturnAndStd = getPortRetAndStdMat(Q, covarianceMet, noOfCompany, tempInv, vectorOfCompanyMeanRet);
 
 
 
@@ -147,7 +141,7 @@ std::vector< std::vector<double> > getCovariance( std::vector< std::vector<doubl
 }
 
 
-std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<double> > inverseMet, std::vector< std::vector<double> > covarianceMet, int noOfCompany, mat tempInv, std::vector<double> vectorOfCompanyMeanRet )
+std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<double> > Q, std::vector< std::vector<double> > covarianceMet, int noOfCompany, mat tempInv, std::vector<double> vectorOfCompanyMeanRet )
     {
     mat vectorOfOptimisation = randu(3,1);
     // Creating vector for saving portfolio returns and stds depend on different return
@@ -159,6 +153,7 @@ std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<
     mat matOfWeightOfCompany = randu(noOfCompany + 2, 1);
 
     int i = 0;
+
     while (i <= 0.1)
     {
     // let say portfolio target return is 10%
@@ -209,3 +204,31 @@ std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<
 
     return vectorOfReturnAndStd;
     }
+std::vector<std::vector <double> > Multiplication2D (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B)
+{    
+    int columnLengthA = A.size(); //read matrix size horizontally
+    int columnLengthB = B.size();
+    int rowLengthB = B[0].size(); //read matrix size vertically
+    int rowLengthA = A[0].size();
+    std::vector< std::vector <double> > multiple;
+    std::vector<double> zeros;
+        // Initializing elements of matrix mult to 0.
+    for (i = 0; i < rowLengthA; i++)
+    {
+        zeros.push_back(0);
+    }
+    for(j = 0; j < columnLengthB; ++j)
+    {
+        multiple.push_back(zeros);
+    }
+
+    // Multiplying matrix a and b and storing in array mult.
+    for(i = 0; i < rowLengthA; ++i)
+        for(j = 0; j < columnLengthB; ++j)
+            for(k = 0; k < columnLengthA; ++k)
+            {
+                multiple[i][j] += A[i][k] * B[k][j];
+            }
+
+    return multiple;
+}
