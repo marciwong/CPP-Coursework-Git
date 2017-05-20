@@ -33,33 +33,40 @@ int main()
   readData(returnMatrix,fileName);
   
   std::vector<vector<double> > returnVector;//(83,vector<double>(83));
+  std::vector<double> zeroVector;
+  // std::vector<Company> companyVector;
+  for (int i = 0; i < numberOfDays; i++)
+  {
+    zeroVector.push_back(0);
+  }
 
-  for (int i = 0; i < 83; i++)
-  	{
-  		for (int j = 0; j < 83; j++)
-  	{
-  		returnVector[i][j] = returnMatrix[i][j]; //transforming 2d array into 2d vector
-  	}
+  for (int i = 0; i < numberOfAssets; i++)
+  {
+    returnVector.push_back(zeroVector);;
+  }
 
-  	}
-  std::vector<Company> companyVector;
+  for (int i = 0; i < numberOfAssets; i++)
+   {
+     for (int j = 0; j < numberOfAssets; j++)
+   {
+     returnVector[i][j] = returnMatrix[i][j]; //transforming 2d array into 2d vector
+   }
+   }
 
-  // Company.getCompanyReturn(companyVector)
   std::vector<Company> vectorOfCompanyRet;
-  for (int i = 0 ; i < 83; i++)
+  for (int i = 0 ; i < numberOfAssets; i++)
   {
   		Company company(returnVector,i, numberOfDays);
   		vectorOfCompanyRet.push_back(company);
   }
 
   std::vector<double> vectorOfCompanyMeanRet;
-  for (int i = 0; i < 83; i++)
+  for (int i = 0; i < numberOfAssets; i++)
   {
-
-      vectorOfCompanyMeanRet.push_back(vectorOfCompanyRet[i].getCompanyMeanRet());
+      vectorOfCompanyMeanRet.push_back(vectorOfCompanyRet[i].getCompanyMeanRet());      
   }
 
-  //Portfolio fullSamplePort(vectorOfCompanyMeanRet, vectorOfCompanyMeanRet, numberOfAssets,numberOfDays);
+  Portfolio fullSamplePort(returnVector, vectorOfCompanyMeanRet, numberOfAssets, numberOfDays);
 }
 
 double string_to_double( const std::string& s )
