@@ -47,7 +47,7 @@ int main()
 
   for (int i = 0; i < numberOfAssets; i++)
    {
-     for (int j = 0; j < numberOfAssets; j++)
+     for (int j = 0; j < numberOfDays; j++)
    {
      returnVector[i][j] = returnMatrix[i][j]; //transforming 2d array into 2d vector
    }
@@ -95,8 +95,7 @@ void readData(double **data,string fileName)
                data[j][i]=temp;
             }
             i++;
-		}
-		
+		}		
 		file.close();
 	}
 	else 

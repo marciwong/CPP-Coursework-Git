@@ -26,7 +26,7 @@ class Portfolio
 
 	public:
 		Portfolio();
-		Portfolio(std::vector< std::vector<double> > returnVector, std::vector<double> vectorOfCompanyMeanRet, double noOfCompany, double time);
+		Portfolio(std::vector< std::vector<double> > returnVector, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int time);
 		std::vector<double> getPortfolioWeights;
 };
 

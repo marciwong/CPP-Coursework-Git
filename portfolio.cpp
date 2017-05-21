@@ -1,4 +1,3 @@
-#define ARMA_DONT_USE_WRAPPER
 #include <cmath>
 #include <iostream>
 #include <string.h>
@@ -16,10 +15,16 @@ using namespace arma;
 using namespace std;
 
 double mean(vector<double> input);
+double meanArray(double input[]);
 double standardDeviation(vector<double> input , double mean);
-std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, double size, double timeLength);
-std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<double> > Q, std::vector< std::vector<double> > covarianceMet, int noOfCompany, mat tempInv, std::vector<double> vectorOfCompanyMeanRet);
-std::vector<std::vector <double> > Multiplication2D (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, int size, int timeLength);
+std::vector<std::vector <double> > getWeights(std::vector< std::vector<double> > Q, double numberOfCompany);
+std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+double ATransposeA(std::vector<double> A);
+std::vector<double> Minus1D(std::vector<double> A, std::vector<double> B);
+std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
 
 Company::Company(){ };
 
@@ -34,7 +39,6 @@ Company::Company(std::vector < std::vector<double> > input, int i, int timeLengt
     }
     double meanRet = mean(allReturnVector);
     double stdev = standardDeviation(allReturnVector, meanRet);
-
 };
 
 double Company::getCompanyMeanRet()
@@ -57,33 +61,27 @@ Portfolio::Portfolio(std::vector< std::vector<double> > returnVector, std::vecto
 
     std::vector < std::vector<double> > covarianceMet = getCovariance(returnVector, noOfCompany, numberOfDays);
 
-    // for (int i = 0; i < 83; i++ )
-    // {
-    //   covarianceMet[i].push_back(negativeRet[i]);
-    //   covarianceMet[i].push_back(eVector[i]);
-    // }
+    for (int i = 0; i < 83; i++ )
+    {
+      covarianceMet[i].push_back(negativeRet[i]);
+      covarianceMet[i].push_back(eVector[i]);
+    }
 
-    // std::vector<double> negativeRetWithZero = negativeRet;
+    std::vector<double> negativeRetWithZero = negativeRet;
 
-    // negativeRetWithZero.push_back(0);
-    // negativeRetWithZero.push_back(0);
+    negativeRetWithZero.push_back(0);
+    negativeRetWithZero.push_back(0);
 
-    // std::vector<double> eVectorWithZero = eVector;
-    // eVectorWithZero.push_back(0);
-    // eVectorWithZero.push_back(0);
+    std::vector<double> eVectorWithZero = eVector;
+    eVectorWithZero.push_back(0);
+    eVectorWithZero.push_back(0);
     
-    // std::vector< std::vector<double> > Q;
-    // Q = covarianceMet;
-    // Q.push_back(negativeRetWithZero);
-    // Q.push_back(eVectorWithZero);
-    // cout << covarianceMet[1][1];
+    std::vector< std::vector<double> > Q;
+    Q = covarianceMet;
+    Q.push_back(negativeRetWithZero);
+    Q.push_back(eVectorWithZero);
 
-  // std::vector<std::vector<double> >portfolioReturnAndStd = getPortRetAndStdMat(Q, covarianceMet, noOfCompany, tempInv, vectorOfCompanyMeanRet);
-
-
-
-
-
+    std::vector<std::vector<double> >portfolioWeight = getWeights(Q, noOfCompany);
 };  
 
 
@@ -98,7 +96,7 @@ double mean(vector<double> input)
           sum += input[i];
        }  
        double average = (sum / input.size());
-       return average;
+   return average;
 }
 
 double standardDeviation(vector<double> input , double mean)
@@ -111,6 +109,110 @@ double standardDeviation(vector<double> input , double mean)
        double std = (sqrt(sumSq / (input.size() - 1 )));
        return std;
 }
+
+std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B)
+{    
+    int columnLengthA = A.size(); //read matrix size horizontally
+    int columnLengthB = B.size();
+    int rowLengthB = B[0].size(); //read matrix size vertically
+    int rowLengthA = A[0].size();
+    std::vector< std::vector <double> > multiple;
+    std::vector<double> zeros;
+    double sum;
+        // Initializing elements of matrix mult to 0.
+
+        for (int i = 0; i < rowLengthA; i++)
+        {
+            zeros.push_back(0);
+        }
+        for(int j = 0; j < columnLengthB; j++)
+        {
+            multiple.push_back(zeros);
+        }
+
+    //Multiplying matrix a and b and storing in array mult.
+        for(int i = 0; i < rowLengthA; i++)
+        {
+            for(int j = 0; j < columnLengthB; j++)
+            {
+                for(int k = 0; k < columnLengthA; k++)
+                {
+                    sum += A[k][i] * B[j][k];
+                }
+
+                multiple[j][i] = sum;
+            }
+        }
+    return multiple;
+}
+
+std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B)
+{
+    int columnLengthA = A.size(); //read matrix size horizontally
+    int columnLengthB = B.size();
+    int rowLengthB = B[0].size(); //read matrix size vertically
+    int rowLengthA = A[0].size();
+    std::vector<std::vector<double> > sum;
+    std::vector<double> zeros;
+
+        for(int j = 0; j < columnLengthA; ++j)
+        {
+        for (int i = 0; i < rowLengthA; i++)
+        {
+            zeros.push_back(0);
+        }
+            sum.push_back(zeros);
+        }
+
+        for(int i = 0; i < rowLengthA; ++i)
+        {
+            for(int j = 0; j < columnLengthB; ++j)
+            {
+                sum[i][j] += A[i][j] - B[i][j];    
+            }
+        }
+    return sum;
+}
+
+std::vector<std::vector<double> > Plus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B)
+{
+    int columnLengthA = A.size(); //read matrix size horizontally
+    int columnLengthB = B.size();
+    int rowLengthB = B[0].size(); //read matrix size vertically
+    int rowLengthA = A[0].size();
+    std::vector<std::vector<double> > sum;
+    std::vector<double> zeros;
+
+        for (int i = 0; i < rowLengthA; i++)
+        {
+          zeros.push_back(0);
+        }
+        for(int j = 0; j < columnLengthA; ++j)
+        {
+            sum.push_back(zeros);
+        }
+        for(int i = 0; i < rowLengthA; ++i)
+        {
+            for(int j = 0; j < columnLengthB; ++j)
+            {
+
+                sum[i][j] += A[i][j] + B[i][j];   
+            }
+        }
+    return sum;
+}
+
+
+double ATransposeA(std::vector<double> A)
+{
+    double sum = 0;
+    for (int i = 0; i < A.size(); i++)
+    {
+        sum = sum + A[i]*A[i];
+    }
+    return sum;
+}
+
 std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double> > returnVector, int numberOfCompany, int timeLength)
 {
     // Initialise cov matrix
@@ -125,116 +227,111 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
       cov.push_back(column);
     }
 
+    std::vector<double> firstCompany;
+    std::vector<double> secondCompany;
+
+    for (int j = 0; j < timeLength; j++)
+    {
+      firstCompany.push_back(0);
+      secondCompany.push_back(0);
+    }
+
     for (int i = 0; i < numberOfCompany; i++)
     {
-      for (int k = 0; i < numberOfCompany; k++)
+      for (int k = 0; k < numberOfCompany; k++)
       {  
-        std::vector<double> x;
-        std::vector<double> y;
         for (int j = 0; j < timeLength; j++)
         {
-          x.push_back(returnVector[i][j]);
-          y.push_back(returnVector[k][j]);
+          firstCompany[j] = returnVector[i][j];
+          secondCompany[j] = returnVector[k][j];
         }
-
-        // double xMean = mean(x);
-        // double yMean = mean(y);
-           
-        // cov[i][k] += (x[i] - xMean) * (y[k] - yMean) / (numberOfCompany - 1);
+        double firstCompanyMean = mean(firstCompany);
+        double secondCompanyMean = mean(secondCompany);           
+        for (int j = 0; j < timeLength; j++)
+        {
+          cov[i][k] += (firstCompany[j] - firstCompanyMean) * (secondCompany[j] - secondCompanyMean) / (numberOfCompany - 1);    
+        }
       }
     }
     return cov;
 }
 
 
-// std::vector<std::vector <double> > getPortRetAndStdMat(std::vector< std::vector<double> > Q, std::vector< std::vector<double> > covarianceMet, int noOfCompany, mat tempInv, std::vector<double> vectorOfCompanyMeanRet )
-//     {
-//     mat vectorOfOptimisation = randu(3,1);
-//     // Creating vector for saving portfolio returns and stds depend on different return
-//     std::vector<double> portfolioRet;
-//     std::vector<double> portfolioStd;
-//     double PortMeanRet;
-//     double PortStd;
-//     std::vector<double> vectorOfObjectives;
-//     mat matOfWeightOfCompany = randu(noOfCompany + 2, 1);
+std::vector<std::vector <double> > getWeights(std::vector< std::vector<double> > Q, double numberOfCompany)
+    {
+        std::vector<std::vector<double> > s;
+        std::vector<std::vector<double> > b;
+        std::vector<std::vector<double> > x;
+        std::vector<std::vector<double> > Qx;
+        std::vector<double> zeros;
+        std::vector<double> xVector;
 
-//     int i = 0;
+        for (int i = 0; i < 83; i++)
+        {
+            zeros.push_back(0);
+            xVector.push_back(1/83);
 
-//     while (i <= 0.1)
-//     {
-//     // let say portfolio target return is 10%
-//     vectorOfOptimisation(1,1) = 0;
-//     vectorOfOptimisation(2,1) = -1 * i;
-//     vectorOfOptimisation(3,1) = -1;
+        }
+        zeros.push_back(0); //portfolio return
+        zeros.push_back(-1);
 
-//     //creating a vector of weights and the two langrangian parameters
+        xVector.push_back(0); // adding lagrangian multipliers into the vector
+        xVector.push_back(0);
 
-//     //use matrix multiplication
-//      matOfWeightOfCompany = tempInv * vectorOfOptimisation;
+        b.push_back(zeros);
+        s.push_back(zeros);
+        x.push_back(xVector);
+        Qx.push_back(zeros);
 
-//     for (int j = 0; j < noOfCompany + 2; j++)
-//     {
-//         vectorOfObjectives[j] = matOfWeightOfCompany(j+1,1);
-//     }
+        double alpha;
+        double sTs;
+        double beta;
+        std::vector<std::vector<double> > p;
+        std::vector<std::vector<double> > pT;
 
-//     // Obtain weight vector from matofWeights
-//     std::vector<double> vectorOfWeights;
-//     for (int k = 0; k < noOfCompany; k++ )
-//     {
-//       vectorOfObjectives[k] = vectorOfWeights[k];
-//     }
+        // // //initialise 
+        int k = 0;
+        int i = 0;
+        Qx = Multiplication(Q,x);
+        
+        // s = Minus(b,Qx);
+        // p = s;
+        // while (sTs < 0.000006)
+        // {   
+        //     if (k == 0)
+        //     {
+        //         pT.push_back(p);
+        //         alpha = ATransposeA(s) / Multiplication(p, Multiplication(Q,pT));
+        //         x = Plus(x, Multiplication(alpha,pT));
+        //         s = Minus(s, Multiplication(alpha, Multiplication(Q,pT)));
+        //         sVector.push_back(s);
+        //         pVector.push_back(p);c
+        //     }
 
-//     // Obtain the lambda and miu
-//     double lambda = vectorOfObjectives[83];
-//     double miu = vectorOfObjectives[84];
+        //     else
+        //     {
+        //         pT.push_back(p);
+        //         alpha = ATransposeA(s) / Multiplication(p, Multiplication(Q,pT));
+        //         x = Plus(x, Multiplication(alpha,pT));
+        //         s = Minus(s, Multiplication(alpha, Multiplication(Q,pT)));
+        //         sVector.push_back(s);
+        //         beta = ATransposeA(sVector);
+        //         p = Plus(s,beta * p);
+        //         pVector.push_back(p);
 
-//     // Multiplying the weight with mean company return
-//     for (int h = 0; h < noOfCompany; h++)
-//     {
-//       PortMeanRet += vectorOfCompanyMeanRet[h] * vectorOfWeights[h];
-//       PortStd += covarianceMet[h][h] * vectorOfWeights[h] * vectorOfWeights[h];
-//     }
+        //     }
+        //     sTs = ATransposeA(sVector);
+        //     k += 1;
+        // }
 
-//     portfolioRet.push_back(PortMeanRet);
-//     portfolioStd.push_back(PortStd);
-    
-//     i = i + 0.005;
-//     }
-//     std::vector< std::vector<double> > vectorOfReturnAndStd;
+        // while (i <= 0.1)
+        //     {
 
-//     for (int i = 0; i < portfolioRet.size(); i++)
-//     {
-//       vectorOfReturnAndStd[0][i] = portfolioRet[i];
-//       vectorOfReturnAndStd[1][i] = portfolioStd[i];
-//     }
+        //         b[0][83] = i * -1;
 
-//     return vectorOfReturnAndStd;
-//     }
-// std::vector<std::vector <double> > Multiplication2D (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B)
-// {    
-//     int columnLengthA = A.size(); //read matrix size horizontally
-//     int columnLengthB = B.size();
-//     int rowLengthB = B[0].size(); //read matrix size vertically
-//     int rowLengthA = A[0].size();
-//     std::vector< std::vector <double> > multiple;
-//     std::vector<double> zeros;
-//         // Initializing elements of matrix mult to 0.
-//     for (int i = 0; i < rowLengthA; i++)
-//     {
-//         zeros.push_back(0);
-//     }
-//     for(int j = 0; j < columnLengthB; ++j)
-//     {
-//         multiple.push_back(zeros);
-//     }
+        //         i += 0.05;
+        //     }
 
-//     // Multiplying matrix a and b and storing in array mult.
-//     for(int i = 0; i < rowLengthA; ++i)
-//         for(int j = 0; j < columnLengthB; ++j)
-//             for(int k = 0; k < columnLengthA; ++k)
-//             {
-//                 multiple[i][j] += A[i][k] * B[k][j];
-//             }
+    return b;
+    }
 
-//     return multiple;
-// }
