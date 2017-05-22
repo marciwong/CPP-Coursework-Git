@@ -35,6 +35,10 @@ int main()
   std::vector<vector<double> > returnVector;//(83,vector<double>(83));
   std::vector<double> zeroVector;
   // std::vector<Company> companyVector;
+
+  int inSampleRollingWindowSize = 100;
+  int outOfSampleRollingWindowSize = 12;
+
   for (int i = 0; i < numberOfDays; i++)
   {
     zeroVector.push_back(0);
@@ -103,6 +107,42 @@ void readData(double **data,string fileName)
 		cout <<fileName <<" missing\n";exit(0);
 	}
 }
+
+std::vector<std::vector<std::vector<double> > > Backtest (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, std::vector<vector<double> > returnVector)
+{
+  std::vector<std::vector<std::vector<double> > > tempBacktest;
+  std::vector<std::vector<double> > tempReturnVector;
+  std::vector<double> hundredZeros;
+  for (int j = 0; j < inSampleRollingWindowSize; j++)
+  {
+    hundredZeros.push_back(0);
+  }
+  for (int i = 0; i < numberOfAssets; i++)
+  {
+    tempReturnVector.push_back(hundredZeros);
+  }
+
+  int i = 0;
+
+
+    for (int j = 0; j < numberOfAssets; j++)
+    {
+        for (int i = 0; i < 700; i += 12)
+        { 
+            tempReturnVector[j][i]
+        }
+    }
+
+  for (int i = 0; i < 50; i++)
+  {
+      tempBacktest.push_back()
+  }
+}
+
+
+
+
+
 
 
 

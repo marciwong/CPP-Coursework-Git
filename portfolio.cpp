@@ -2,7 +2,6 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
-#include <armadillo>
 #include <fstream>
 #include <sstream>
 #include <string>
@@ -22,7 +21,7 @@ std::vector<std::vector <double> > getWeights(std::vector< std::vector<double> >
 std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
 std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
 std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
-double ATransposeA(std::vector<double> A);
+double ATransposeA(std::vector<std::vector<double> > A);
 std::vector<double> Minus1D(std::vector<double> A, std::vector<double> B);
 std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
 
@@ -148,25 +147,21 @@ std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double
 
 std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B)
 {
-    int columnLengthA = A.size(); //read matrix size horizontally
-    int columnLengthB = B.size();
-    int rowLengthB = B[0].size(); //read matrix size vertically
-    int rowLengthA = A[0].size();
     std::vector<std::vector<double> > sum;
     std::vector<double> zeros;
 
-        for(int j = 0; j < columnLengthA; ++j)
+        for(int j = 0; j < B.size(); ++j)
         {
-        for (int i = 0; i < rowLengthA; i++)
+        for (int i = 0; i < A[0].size(); i++)
         {
             zeros.push_back(0);
         }
             sum.push_back(zeros);
         }
 
-        for(int i = 0; i < rowLengthA; ++i)
+        for(int i = 0; i < B.size(); ++i)
         {
-            for(int j = 0; j < columnLengthB; ++j)
+            for(int j = 0; j < A[0].size(); ++j)
             {
                 sum[i][j] += A[i][j] - B[i][j];    
             }
@@ -176,39 +171,35 @@ std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std
 
 std::vector<std::vector<double> > Plus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B)
 {
-    int columnLengthA = A.size(); //read matrix size horizontally
-    int columnLengthB = B.size();
-    int rowLengthB = B[0].size(); //read matrix size vertically
-    int rowLengthA = A[0].size();
     std::vector<std::vector<double> > sum;
     std::vector<double> zeros;
 
-        for (int i = 0; i < rowLengthA; i++)
+        for(int j = 0; j < B.size(); ++j)
         {
-          zeros.push_back(0);
+        for (int i = 0; i < A[0].size(); i++)
+        {
+            zeros.push_back(0);
         }
-        for(int j = 0; j < columnLengthA; ++j)
-        {
             sum.push_back(zeros);
         }
-        for(int i = 0; i < rowLengthA; ++i)
-        {
-            for(int j = 0; j < columnLengthB; ++j)
-            {
 
-                sum[i][j] += A[i][j] + B[i][j];   
+        for(int i = 0; i < B.size(); ++i)
+        {
+            for(int j = 0; j < A[0].size(); ++j)
+            {
+                sum[i][j] += A[i][j] + B[i][j];    
             }
         }
     return sum;
 }
 
 
-double ATransposeA(std::vector<double> A)
+double ATransposeA(std::vector<std::vector<double> > A)
 {
     double sum = 0;
     for (int i = 0; i < A.size(); i++)
     {
-        sum = sum + A[i]*A[i];
+        sum = sum + A[0][i]*A[0][i];
     }
     return sum;
 }
@@ -269,14 +260,14 @@ std::vector<std::vector <double> > getWeights(std::vector< std::vector<double> >
         for (int i = 0; i < 83; i++)
         {
             zeros.push_back(0);
-            xVector.push_back(1/83);
+            xVector.push_back(1.0 / 83.0);
 
         }
         zeros.push_back(0); //portfolio return
         zeros.push_back(-1);
 
-        xVector.push_back(0); // adding lagrangian multipliers into the vector
-        xVector.push_back(0);
+        xVector.push_back(1); // adding lagrangian multipliers into the vector
+        xVector.push_back(1);
 
         b.push_back(zeros);
         s.push_back(zeros);
@@ -284,54 +275,75 @@ std::vector<std::vector <double> > getWeights(std::vector< std::vector<double> >
         Qx.push_back(zeros);
 
         double alpha;
-        double sTs;
+        double sTs0 = 1;
+        double sTs1;
         double beta;
         std::vector<std::vector<double> > p;
         std::vector<std::vector<double> > pT;
+        std::vector<std::vector<double> > Qp;
+        std::vector<std::vector<double> > alphaQp;
 
+        p.push_back(zeros);
+        for (int i = 0; i < pT.size(); i++)
+        {
+            pT[i].push_back(0);
+        }
+        double pQpTtemp;
         // // //initialise 
         int k = 0;
         int i = 0;
         Qx = Multiplication(Q,x);
-        
-        // s = Minus(b,Qx);
-        // p = s;
-        // while (sTs < 0.000006)
-        // {   
-        //     if (k == 0)
-        //     {
-        //         pT.push_back(p);
-        //         alpha = ATransposeA(s) / Multiplication(p, Multiplication(Q,pT));
-        //         x = Plus(x, Multiplication(alpha,pT));
-        //         s = Minus(s, Multiplication(alpha, Multiplication(Q,pT)));
-        //         sVector.push_back(s);
-        //         pVector.push_back(p);c
-        //     }
+        s = Minus(b,Qx);
+        p = s;
 
-        //     else
-        //     {
-        //         pT.push_back(p);
-        //         alpha = ATransposeA(s) / Multiplication(p, Multiplication(Q,pT));
-        //         x = Plus(x, Multiplication(alpha,pT));
-        //         s = Minus(s, Multiplication(alpha, Multiplication(Q,pT)));
-        //         sVector.push_back(s);
-        //         beta = ATransposeA(sVector);
-        //         p = Plus(s,beta * p);
-        //         pVector.push_back(p);
+        while (sTs0 <= 0.000006)
+        {   
+            std::vector<double> temp;
+            for (int i = 0; i < p[0].size(); i++)
+            {
+                temp.push_back(p[0][i]);
+            }
+            pT.push_back(temp);
+            Qp = Multiplication(Q,p);
+            pQpTtemp = Multiplication(p, Qp)[0][0];
+            alpha = ATransposeA(s) / pQpTtemp;
+            for (int i = 0; i < pT.size(); i++)
+            {
+                pT[i][0] = alpha * pT[i][0];
+            }
+            x = Plus(x, pT);
+            for (int i = 0; i < Qp.size(); i++)
+            {
+                alphaQp[0][i] = alpha * Qp[0][i];
+            }
+            sTs0 = ATransposeA(s);
+            s = Minus(s, alphaQp);
+            sTs1 = ATransposeA(s);
+            beta = sTs1 / sTs0;
 
-        //     }
-        //     sTs = ATransposeA(sVector);
-        //     k += 1;
-        // }
+        k += 1;
+        }
+        std::vector<double> eightTreezeros;
+        for (int i = 0; i < 83; i++)
+        {
+            eightTreezeros.push_back(0);
+        }
+        std::vector<std::vector<double> > weights;
+        weights.push_back(eightTreezeros);
+        for (int i = 0; i < (x[0].size()-2); i++)
+        {
+            weights[0][i] = x[0][i];
+        }
 
+        return weights;
+        }
+
+        //loop to change the return of portfolio
         // while (i <= 0.1)
         //     {
-
         //         b[0][83] = i * -1;
-
         //         i += 0.05;
         //     }
 
-    return b;
-    }
+
 
