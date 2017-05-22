@@ -21,6 +21,7 @@ using namespace std;
 
 double string_to_double( const std::string& s );
 void readData(double **data,string fileName);
+//std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (double inSampleRollingWindowSize, double outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector);
 
 int main()
 {
@@ -36,10 +37,10 @@ int main()
   std::vector<double> zeroVector;
   // std::vector<Company> companyVector;
 
-  int inSampleRollingWindowSize = 100;
-  int outOfSampleRollingWindowSize = 12;
+  double inSampleRollingWindowSize = 100;
+  double outOfSampleRollingWindowSize = 12;
 
-  for (int i = 0; i < numberOfDays; i++)
+  for (int i = 0; i < inSampleRollingWindowSize; i++)
   {
     zeroVector.push_back(0);
   }
@@ -50,12 +51,14 @@ int main()
   }
 
   for (int i = 0; i < numberOfAssets; i++)
-   {
-     for (int j = 0; j < numberOfDays; j++)
-   {
-     returnVector[i][j] = returnMatrix[i][j]; //transforming 2d array into 2d vector
-   }
-   }
+  {
+    for (int j = 0; j < numberOfDays; j++)
+  {
+    returnVector[i][j] = returnMatrix[i][j]; //transforming 2d array into 2d vector
+  }
+  }
+
+  //std::vector<std::vector<std::vector<double> > > inSampleMat = inSampleRollingWindow(inSampleRollingWindowSize, outOfSampleRollingWindowSize, numberOfAssets, numberOfDays, returnVector);
 
   std::vector<Company> vectorOfCompanyRet;
   for (int i = 0 ; i < numberOfAssets; i++)
@@ -71,27 +74,27 @@ int main()
   }
 
   Portfolio fullSamplePort(returnVector, vectorOfCompanyMeanRet, numberOfAssets, numberOfDays);
-}
+  }
 
-double string_to_double( const std::string& s )
-{
-	std::istringstream i(s);
-	double x;
-	if (!(i >> x))
-		return 0;
-	return x;
-} 
+  double string_to_double( const std::string& s )
+  {
+	 std::istringstream i(s);
+	 double x;
+	 if (!(i >> x))
+		  return 0;
+	 return x;
+  } 
 
-void readData(double **data,string fileName)
-{
-	char tmp[20];
-	ifstream file (strcpy(tmp, fileName.c_str()));
-	Csv csv(file);
-	string line;
-	if (file.is_open()) 
-	{
-		int i=0;
-		while (csv.getline(line) != 0) {
+  void readData(double **data,string fileName)
+  {
+	 char tmp[20];
+	 ifstream file (strcpy(tmp, fileName.c_str()));
+	 Csv csv(file);
+	 string line;
+	 if (file.is_open()) 
+	 {
+		  int i=0;
+		  while (csv.getline(line) != 0) {
          	for (int j = 0; j < csv.getnfield(); j++)
             {
                double temp=string_to_double(csv.getfield(j));
@@ -101,43 +104,46 @@ void readData(double **data,string fileName)
             i++;
 		}		
 		file.close();
-	}
-	else 
-	{
-		cout <<fileName <<" missing\n";exit(0);
-	}
-}
-
-std::vector<std::vector<std::vector<double> > > Backtest (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, std::vector<vector<double> > returnVector)
-{
-  std::vector<std::vector<std::vector<double> > > tempBacktest;
-  std::vector<std::vector<double> > tempReturnVector;
-  std::vector<double> hundredZeros;
-  for (int j = 0; j < inSampleRollingWindowSize; j++)
-  {
-    hundredZeros.push_back(0);
-  }
-  for (int i = 0; i < numberOfAssets; i++)
-  {
-    tempReturnVector.push_back(hundredZeros);
+	 }
+	 else 
+	 {
+		  cout <<fileName <<" missing\n";exit(0);
+	 }
   }
 
-  int i = 0;
+// std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (double inSampleRollingWindowSize, double outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector)
+// {
+//   std::vector<std::vector<std::vector<double> > > tempBacktest;
+//   std::vector<std::vector<double> > tempReturnVector;
+//   std::vector<double> hundredZeros;
 
+//   for (int j = 0; j < inSampleRollingWindowSize; j++)
+//   {
+//     hundredZeros.push_back(0);
+//   }
+//   for (int i = 0; i < numberOfAssets; i++)
+//   {
+//     tempReturnVector.push_back(hundredZeros);
+//   }
 
-    for (int j = 0; j < numberOfAssets; j++)
-    {
-        for (int i = 0; i < 700; i += 12)
-        { 
-            tempReturnVector[j][i]
-        }
-    }
+//   int i = 0;
 
-  for (int i = 0; i < 50; i++)
-  {
-      tempBacktest.push_back()
-  }
-}
+//   for (int i = 0; i < 50; i++)
+//   {
+//     for (int k =0; k < numberOfAssets; k++)
+//     {
+//       for (int j = 0; j < numberOfDays - 100; j += 12)
+//       {
+//         for (int i = 0; i < 100; i++)
+//         { 
+//         tempReturnVector[k][i] = returnVector[k][i+j];
+//         }
+//       }
+//     }
+//     tempBacktest.push_back(tempReturnVector);
+//   }
+//   return tempBacktest;
+// }
 
 
 
