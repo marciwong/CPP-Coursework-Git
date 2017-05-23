@@ -21,7 +21,7 @@ using namespace std;
 
 double string_to_double( const std::string& s );
 void readData(double **data,string fileName);
-//std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (double inSampleRollingWindowSize, double outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector);
+// std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (double inSampleRollingWindowSize, double outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector);
 
 int main()
 {
@@ -58,7 +58,7 @@ int main()
   }
   }
 
-  //std::vector<std::vector<std::vector<double> > > inSampleMat = inSampleRollingWindow(inSampleRollingWindowSize, outOfSampleRollingWindowSize, numberOfAssets, numberOfDays, returnVector);
+  // std::vector<std::vector<std::vector<double> > > inSampleMat = inSampleRollingWindow(inSampleRollingWindowSize, outOfSampleRollingWindowSize, numberOfAssets, numberOfDays, returnVector);
 
   std::vector<Company> vectorOfCompanyRet;
   for (int i = 0 ; i < numberOfAssets; i++)
