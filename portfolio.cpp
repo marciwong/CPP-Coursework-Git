@@ -10,7 +10,6 @@
 #include "portfolio.h"
 #include "csv.h"
 
-using namespace arma;
 using namespace std;
 
 double mean(vector<double> input);
@@ -27,16 +26,17 @@ std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
 
 Company::Company(){ };
 
-Company::Company(std::vector < std::vector<double> > input, int i, int timeLength)
+Company::Company(std::vector<std::vector<double> > input, int i, int timeLength)
 {
-    int Days = input.size();
+    int Days = timeLength;
     double returnArray[timeLength];
     std::vector<double> allReturnVector;
     for (int j = 0 ; j < timeLength; j++)
-    {
-      allReturnVector.push_back(input[i][j]);
-    }
+        {
+            allReturnVector.push_back(input[i][j]);
+        }
     double meanRet = mean(allReturnVector);
+    // cout << meanRet << endl;
     double stdev = standardDeviation(allReturnVector, meanRet);
 };
 

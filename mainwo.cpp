@@ -59,21 +59,42 @@ int main()
    }
 
   std::vector<std::vector<std::vector<double> > > inSampleMat = inSampleRollingWindow(inSampleRollingWindowSize, outOfSampleRollingWindowSize, numberOfAssets, numberOfDays, returnVector);
+  std::vector<double> VectorOfcompanyMeanRet;
+  std::vector<std::vector<double> > MatrixOfcompanyMeanRet;
+  std::vector<Company> vectorOfCompany;
+  std::vector<std::vector<Company> > rollingCompanyMat;
 
-  std::vector<Company> vectorOfCompanyRet;
-  for (int i = 0 ; i < numberOfAssets; i++)
+  for  (int j = 0; j < ((numberOfDays-100)/outOfSampleRollingWindowSize); j++)
   {
-  		Company company(returnVector,i, numberOfDays);
-  		vectorOfCompanyRet.push_back(company);
-  }
+    for (int i = 0 ; i < numberOfAssets; i++)
+    {
+  		  Company company(inSampleMat[j],i, inSampleRollingWindowSize);
+        cout << company.getCompanyMeanRet();
+  		  VectorOfcompanyMeanRet.push_back(company.getCompanyMeanRet());
+    }
+    MatrixOfcompanyMeanRet.push_back(VectorOfcompanyMeanRet);
+  } 
 
-  std::vector<double> vectorOfCompanyMeanRet;
-  for (int i = 0; i < numberOfAssets; i++)
-  {
-      vectorOfCompanyMeanRet.push_back(vectorOfCompanyRet[i].getCompanyMeanRet());      
-  }
+  cout << MatrixOfcompanyMeanRet[0][0] <<endl;
 
-  Portfolio fullSamplePort(returnVector, vectorOfCompanyMeanRet, numberOfAssets, numberOfDays);
+  // std::vector<std::vector<double> > vectorOfCompanyMeanRet;
+  // std::vector<double> meanOfCompanyVector;
+
+  // for  (int j = 0; j < ((numberOfDays-100)/outOfSampleRollingWindowSize); j++)
+  // {
+  //   for (int i = 0 ; i < numberOfAssets; i++)
+  //   {
+  //       meanOfCompanyVector.push_back(rollingCompanyMat[j][i].getCompanyMeanRet());      
+  //   }
+  //   vectorOfCompanyMeanRet.push_back(meanOfCompanyVector);
+  // }
+
+  // for (int i = 0; i < 50; i++)
+  // {
+  //   cout << vectorOfCompanyMeanRet[i][0] << endl;
+  // }
+
+  // Portfolio fullSamplePort(returnVector, vectorOfCompanyMeanRet, numberOfAssets, numberOfDays);
 }
 
 double string_to_double( const std::string& s )
@@ -125,22 +146,19 @@ std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (int inSam
   {
     tempReturnVector.push_back(hundredZeros);
   }
-
-  int i = 0;
-
-  for (int h = 0; h < 50; h++)
-  {
-    for (int k =0; k < numberOfAssets; k++)
+    for (int j = 0; j < numberOfDays - 99; j += 12)
     {
-      for (int j = 0; j < numberOfDays - 99; j += 12)
+      for (int h = 0; h < 50; h++)
+      {
+      for (int k =0; k < numberOfAssets; k++)
       {
         for (int i = 0; i < 100; i++)
-        { 
-            tempReturnVector[k][i] = returnVector[k][i+j];
+        {   
+            tempReturnVector[k][i] = returnVector[k][(i+j)];
         }
       }
     }
-    tempBacktest.push_back(tempReturnVector);
+  tempBacktest.push_back(tempReturnVector);
   }
   return tempBacktest;
 }

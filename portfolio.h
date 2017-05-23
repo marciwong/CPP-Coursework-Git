@@ -37,20 +37,13 @@ class Company
 		double meanRet;
 		double stdev;
 		std::vector<double> allReturnVector;
-		std::vector<double> meanRetVector;
-
 		// double weight;   //**crucial add it in later
 
-		// std::vector<double> inSampleVector;
-		// std::vector<double> outSampleVector;
 
 	public:
 		Company();
 		Company(std::vector< vector<double> > input, int i, int days );
 		double getCompanyMeanRet();
-		// void getCompanyReturn(std::vector<vector<double> > input)
-		// void getInSampleArray();
-		// void getOutSampleArray();
 };
 
 #endif
