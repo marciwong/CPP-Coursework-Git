@@ -21,12 +21,12 @@ class Portfolio
 		std::vector< std::vector<double> > covariance;
 		double lambda;
 		double miu;
-		std::vector<double> weight;
+		std::vector<std::vector<std::vector<double> > > portfolioWeight;
 		double portRet;
 
 	public:
 		Portfolio();
-		Portfolio(std::vector< std::vector<double> > returnVector, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int time);
+		Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector< double > matrixOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize);
 		std::vector<double> getPortfolioWeights;
 };
 

@@ -35,9 +35,8 @@ Company::Company(std::vector<std::vector<double> > input, int i, int timeLength)
         {
             allReturnVector.push_back(input[i][j]);
         }
-    double meanRet = mean(allReturnVector);
-    // cout << meanRet << endl;
-    double stdev = standardDeviation(allReturnVector, meanRet);
+    meanRet = mean(allReturnVector);
+    stdev = standardDeviation(allReturnVector, meanRet);
 };
 
 double Company::getCompanyMeanRet()
@@ -48,39 +47,47 @@ double Company::getCompanyMeanRet()
 
 Portfolio::Portfolio(){ };
 
-Portfolio::Portfolio(std::vector< std::vector<double> > returnVector, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int numberOfDays)
-{
-    std::vector<double> eVector;
-    std::vector<double> negativeRet;
-    for (int i = 0; i < noOfCompany; i++)
+Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize)
+{   
+    std::vector<double> tempEVector;
+    std::vector<double> tempNegativeRet;
+
+    for (int j = 0; j < noOfCompany ; j++)
     {
-      eVector.push_back(-1);
-      negativeRet.push_back(vectorOfCompanyMeanRet[i] * -1);
+        tempEVector.push_back(-1);
+        tempNegativeRet.push_back(vectorOfCompanyMeanRet[j] * -1);
     }
+    tempEVector.push_back(0);
+    tempEVector.push_back(0);
+    tempNegativeRet.push_back(0);
+    tempNegativeRet.push_back(0);
 
-    std::vector < std::vector<double> > covarianceMet = getCovariance(returnVector, noOfCompany, numberOfDays);
+    std::vector< std::vector<double> > covarainceMat;
+    covarainceMat = getCovariance(inSampleMat, noOfCompany, inSampleRollingWindowSize);
 
-    for (int i = 0; i < 83; i++ )
-    {
-      covarianceMet[i].push_back(negativeRet[i]);
-      covarianceMet[i].push_back(eVector[i]);
-    }
-
-    std::vector<double> negativeRetWithZero = negativeRet;
-
-    negativeRetWithZero.push_back(0);
-    negativeRetWithZero.push_back(0);
-
-    std::vector<double> eVectorWithZero = eVector;
-    eVectorWithZero.push_back(0);
-    eVectorWithZero.push_back(0);
-    
     std::vector< std::vector<double> > Q;
-    Q = covarianceMet;
-    Q.push_back(negativeRetWithZero);
-    Q.push_back(eVectorWithZero);
+    std::vector<double> oneDzeros;
+    for (int j = 0; j < noOfCompany; j++)
+    {   
+        Q.push_back(tempEVector);
+    }
 
-    std::vector<std::vector<double> >portfolioWeight = getWeights(Q, noOfCompany);
+ 
+    for (int j = 0; j < noOfCompany; j++)
+    {
+        for(int k = 0; k < noOfCompany; k++)
+        {
+            Q[j][k] = covarainceMat[j][k];   
+        }
+        Q[j].push_back(vectorOfCompanyMeanRet[j]);
+        Q[j].push_back(-1);
+    }
+
+    Q.push_back(tempNegativeRet);
+    Q.push_back(tempEVector);
+
+    portfolioWeight.push_back(getWeights(Q, noOfCompany));
+
 };  
 
 
@@ -249,101 +256,110 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
 
 
 std::vector<std::vector <double> > getWeights(std::vector< std::vector<double> > Q, double numberOfCompany)
+{   
+    int targetRetIndex = 0;
+    int numberOfTargetRet = 0;
+    std::vector<std::vector<double> > weights;
+    std::vector<double> eightTreezeros;
+    for (int i = 0; i < 83; i++)
     {
-        std::vector<std::vector<double> > s;
-        std::vector<std::vector<double> > b;
-        std::vector<std::vector<double> > x;
-        std::vector<std::vector<double> > Qx;
-        std::vector<double> zeros;
-        std::vector<double> xVector;
+        eightTreezeros.push_back(0);
+    }
 
-        for (int i = 0; i < 83; i++)
+    for (int j = 0; j < 0.2/0.05; j++)
+    {
+        weights.push_back(eightTreezeros);
+    }
+
+    while (targetRetIndex <= 0.2)
+    {
+    std::vector<std::vector<double> > s;
+    std::vector<std::vector<double> > b;
+    std::vector<std::vector<double> > x;
+    std::vector<std::vector<double> > Qx;
+    std::vector<double> zeros;
+    std::vector<double> xVector;
+
+    for (int i = 0; i < 83; i++)
+    {
+        zeros.push_back(0);
+        xVector.push_back(1.0 / 83.0);
+
+    }
+    zeros.push_back(0); //portfolio return
+    zeros.push_back(-1);
+
+    xVector.push_back(1); // adding lagrangian multipliers into the vector
+    xVector.push_back(1);
+
+    b.push_back(zeros);
+    s.push_back(zeros);
+    x.push_back(xVector);
+    Qx.push_back(zeros);
+
+    double alpha;
+    double sTs0 = 1;
+    double sTs1;
+    double beta;
+    std::vector<std::vector<double> > p;
+    std::vector<std::vector<double> > pT;
+    std::vector<std::vector<double> > Qp;
+    std::vector<std::vector<double> > alphaQp;
+
+    p.push_back(zeros);
+    for (int i = 0; i < pT.size(); i++)
+    {
+        pT[i].push_back(0);
+    }
+    double pQpTtemp;
+    // // //initialise 
+    int k = 0;
+    int i = 0;
+    Qx = Multiplication(Q,x);
+    s = Minus(b,Qx);
+    p = s;
+
+    while (sTs0 <= 0.000006)
+    {   
+        std::vector<double> temp;
+        for (int i = 0; i < p[0].size(); i++)
         {
-            zeros.push_back(0);
-            xVector.push_back(1.0 / 83.0);
-
+            temp.push_back(p[0][i]);
         }
-        zeros.push_back(0); //portfolio return
-        zeros.push_back(-1);
-
-        xVector.push_back(1); // adding lagrangian multipliers into the vector
-        xVector.push_back(1);
-
-        b.push_back(zeros);
-        s.push_back(zeros);
-        x.push_back(xVector);
-        Qx.push_back(zeros);
-
-        double alpha;
-        double sTs0 = 1;
-        double sTs1;
-        double beta;
-        std::vector<std::vector<double> > p;
-        std::vector<std::vector<double> > pT;
-        std::vector<std::vector<double> > Qp;
-        std::vector<std::vector<double> > alphaQp;
-
-        p.push_back(zeros);
+        pT.push_back(temp);
+        Qp = Multiplication(Q,p);
+        pQpTtemp = Multiplication(p, Qp)[0][0];
+        alpha = ATransposeA(s) / pQpTtemp;
         for (int i = 0; i < pT.size(); i++)
         {
-            pT[i].push_back(0);
+            pT[i][0] = alpha * pT[i][0];
         }
-        double pQpTtemp;
-        // // //initialise 
-        int k = 0;
-        int i = 0;
-        Qx = Multiplication(Q,x);
-        s = Minus(b,Qx);
-        p = s;
-
-        while (sTs0 <= 0.000006)
-        {   
-            std::vector<double> temp;
-            for (int i = 0; i < p[0].size(); i++)
-            {
-                temp.push_back(p[0][i]);
-            }
-            pT.push_back(temp);
-            Qp = Multiplication(Q,p);
-            pQpTtemp = Multiplication(p, Qp)[0][0];
-            alpha = ATransposeA(s) / pQpTtemp;
-            for (int i = 0; i < pT.size(); i++)
-            {
-                pT[i][0] = alpha * pT[i][0];
-            }
-            x = Plus(x, pT);
-            for (int i = 0; i < Qp.size(); i++)
-            {
-                alphaQp[0][i] = alpha * Qp[0][i];
-            }
-            sTs0 = ATransposeA(s);
-            s = Minus(s, alphaQp);
-            sTs1 = ATransposeA(s);
-            beta = sTs1 / sTs0;
-
-        k += 1;
-        }
-        std::vector<double> eightTreezeros;
-        for (int i = 0; i < 83; i++)
+        x = Plus(x, pT);
+        for (int i = 0; i < Qp.size(); i++)
         {
-            eightTreezeros.push_back(0);
+            alphaQp[0][i] = alpha * Qp[0][i];
         }
-        std::vector<std::vector<double> > weights;
-        weights.push_back(eightTreezeros);
-        for (int i = 0; i < (x[0].size()-2); i++)
-        {
-            weights[0][i] = x[0][i];
-        }
+        sTs0 = ATransposeA(s);
+        s = Minus(s, alphaQp);
+        sTs1 = ATransposeA(s);
+        beta = sTs1 / sTs0;
 
-        return weights;
-        }
+    k += 1;
+    }
 
-        //loop to change the return of portfolio
-        // while (i <= 0.1)
-        //     {
-        //         b[0][83] = i * -1;
-        //         i += 0.05;
-        //     }
+    for (int i = 0; i < (x[0].size()-2); i++)
+    {
+        weights[k][i] = x[0][i];
+    }
+
+    b[0][83] = i * -1;
+    targetRetIndex += 0.05;
+    numberOfTargetRet += 1;
+
+    }
+
+    return weights;
+}
 
 
 

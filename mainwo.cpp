@@ -64,37 +64,27 @@ int main()
   std::vector<Company> vectorOfCompany;
   std::vector<std::vector<Company> > rollingCompanyMat;
 
-  for  (int j = 0; j < ((numberOfDays-100)/outOfSampleRollingWindowSize); j++)
+  for  (int j = 0; j < ((numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize); j++)
   {
     for (int i = 0 ; i < numberOfAssets; i++)
     {
   		  Company company(inSampleMat[j],i, inSampleRollingWindowSize);
-        cout << company.getCompanyMeanRet();
   		  VectorOfcompanyMeanRet.push_back(company.getCompanyMeanRet());
     }
     MatrixOfcompanyMeanRet.push_back(VectorOfcompanyMeanRet);
-  } 
+  }
 
-  cout << MatrixOfcompanyMeanRet[0][0] <<endl;
+  cout << MatrixOfcompanyMeanRet[0].size() << endl;
+  cout << MatrixOfcompanyMeanRet.size() << endl;
 
-  // std::vector<std::vector<double> > vectorOfCompanyMeanRet;
-  // std::vector<double> meanOfCompanyVector;
+  std::vector<std::vector<double> > portfolioWeights; 
+  for (int i = 0; i < ((numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize); i++)
+  {
+    Portfolio portfolio(inSampleMat[i], MatrixOfcompanyMeanRet[i], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize);
+    
+    // portfolioWeights.push_back();
+  }
 
-  // for  (int j = 0; j < ((numberOfDays-100)/outOfSampleRollingWindowSize); j++)
-  // {
-  //   for (int i = 0 ; i < numberOfAssets; i++)
-  //   {
-  //       meanOfCompanyVector.push_back(rollingCompanyMat[j][i].getCompanyMeanRet());      
-  //   }
-  //   vectorOfCompanyMeanRet.push_back(meanOfCompanyVector);
-  // }
-
-  // for (int i = 0; i < 50; i++)
-  // {
-  //   cout << vectorOfCompanyMeanRet[i][0] << endl;
-  // }
-
-  // Portfolio fullSamplePort(returnVector, vectorOfCompanyMeanRet, numberOfAssets, numberOfDays);
 }
 
 double string_to_double( const std::string& s )
@@ -146,7 +136,7 @@ std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (int inSam
   {
     tempReturnVector.push_back(hundredZeros);
   }
-    for (int j = 0; j < numberOfDays - 99; j += 12)
+    for (int j = 0; j < numberOfDays - inSampleRollingWindowSize + 1; j += 12)
     {
       for (int h = 0; h < 50; h++)
       {
