@@ -19,8 +19,9 @@ std::vector< std::vector<double> > getCovariance( std::vector< std::vector<doubl
 std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn);
 std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
 std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+std::vector<std::vector<double> > scalarMultiplication(double alpha, std::vector<std::vector<double> > A);
 std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
-double ATransposeA(std::vector<std::vector<double> > A);
+double transpose(std::vector<std::vector<double> > A);
 std::vector<double> Minus1D(std::vector<double> A, std::vector<double> B);
 std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
 
@@ -203,15 +204,30 @@ std::vector<std::vector<double> > Plus(std::vector<std::vector<double> > A, std:
 }
 
 
-double ATransposeA(std::vector<std::vector<double> > A)
+std::vector<std::vector<double> > transpose(std::vector<std::vector<double> > A)
 {
-    double sum = 0;
+    std::vector<std::vector<double> > tempA (A[0].size(),vector <double>(A.size()));
+
     for (int i = 0; i < A.size(); i++)
     {
-        sum = sum + A[0][i]*A[0][i];
+        for (int j = 0; j < A[0].size();j++)
+        {
+            tempA[j][i] = A[i][j];
+        }
     }
-    return sum;
-}
+    return tempA;
+};
+
+std::vector<std::vector<double> > scalarMultiplication(double alpha, std::vector<std::vector<double> > A)
+{
+    std::vector<std::vector<double> > tempA (A[0].size(),vector <double>(A.size()));
+    for (int i = 0; i < A[0].size(); i++)
+    {
+        tempA[0][i] = alpha * A[0][i];
+    }
+};
+
+
 
 std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double> > returnVector, int numberOfCompany, int timeLength)
 {
@@ -260,96 +276,60 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
 std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn)
 {   
     std::vector<double> weights;
+    std::vector<std::vector<double> > s;
+    std::vector<std::vector<double> > s1;
+    std::vector<std::vector<double> > b;
+    std::vector<std::vector<double> > p;
+    std::vector<double> bZeros;
+    std::vector<std::vector<double> > x;
+    std::vector<double> zeros;
+    std::vector<double> xVector;
     std::vector<double> eightyThreezeros;
     for (int i = 0; i < 83; i++)
     {
-        weights.push_back(0);
+        weights.push_back(0.0);
         eightyThreezeros.push_back(0);
+        zeros.push_back(0.0);
+        xVector.push_back(0.01204819277);
+        bZeros.push_back(0.0);
     }
 
-        std::vector<std::vector<double> > s;
-        std::vector<std::vector<double> > b;
-        std::vector<double> bZeros;
-        std::vector<std::vector<double> > x;
-        std::vector<std::vector<double> > Qx;
-        std::vector<double> zeros;
-        std::vector<double> xVector;
-
-        for (int i = 0; i < 83; i++)
-        {
-            zeros.push_back(0.0);
-            xVector.push_back(0.01204819277);
-            bZeros.push_back(0.0);
-
-        }
         zeros.push_back(0.0); //portfolio return
         zeros.push_back(-1.0);
 
         xVector.push_back(1.0); // adding lagrangian multipliers into the vector
         xVector.push_back(1.0);
 
-        double negativeTargetReturn = -1 * noOfTargetReturn;
         bZeros.push_back(negativeTargetReturn);
         bZeros.push_back(-1.0);
+
+        double negativeTargetReturn = -1 * noOfTargetReturn;
         b.push_back(bZeros);
         s.push_back(zeros);
+        s1.push_back(zeros);
         x.push_back(xVector);
-        Qx.push_back(zeros);
 
         double alpha;
-        double sTs0 = 1.0;
-        double sTs1;
+        double sTs = 1;
         double beta;
-        std::vector<std::vector<double> > p;
-        std::vector<std::vector<double> > pT;
-        std::vector<std::vector<double> > Qp;
-        std::vector<std::vector<double> > alphaQp;
 
-        p.push_back(zeros);
-        for (int i = 0; i < pT.size(); i++)
-        {
-            pT[i].push_back(0.0);
-        }
-        double pQpTtemp;
         // // //initialise 
-        int k = 0;
-        int i = 0;
-        Qx = Multiplication(Q,x);
-        for (int i = 0; i < 85; i++)
-        {
-            cout << Qx[0][i] << endl;
-        }
-        cout << endl;
-        s = Minus(b,Qx);
+        s = Minus(b,Multiplication(Q,x));
         p = s;
+        s1 = s;
 
-        while (sTs0 <= 0.000006)
-        {   
-            std::vector<double> temp;
-            for (int i = 0; i < p[0].size(); i++)
-            {
-                temp.push_back(p[0][i]);
-            }
-            pT.push_back(temp);
-            Qp = Multiplication(Q,p);
-            pQpTtemp = Multiplication(p, Qp)[0][0];
-            alpha = ATransposeA(s) / pQpTtemp;
-            for (int i = 0; i < pT.size(); i++)
-            {
-                pT[i][0] = alpha * pT[i][0];
-            }
-            x = Plus(x, pT);
-            for (int i = 0; i < Qp.size(); i++)
-            {
-                alphaQp[0][i] = alpha * Qp[0][i];
-            }
-            sTs0 = ATransposeA(s);
-            s = Minus(s, alphaQp);
-            sTs1 = ATransposeA(s);
-            beta = sTs1 / sTs0;
+        while (sTs <= 0.000006)
+        {
+            alpha = Multiplication(transpose(s),s) / Multiplication(transpose(p),Multiplication(Q,p));
+            x = Minus(x, scalarMultiplication(alpha,p));
+            s1 = Minus(s, scalarMultiplication(alpha, Multiplication(Q,p)));
+            beta = (Multiplication(transpose(s1),s1)) / (Multiplication(transpose(s),s));
+            p = Plus(s1,scalarMultiplication(beta,p));
+            s = s1;
+            sTs = Multiplication(transpose(s1),s1);
         }
 
-        int noOfWeights = 0;
+                int noOfWeights = 0;
         for (int i = 0; i < (x[0].size()-2); i++)
         {
             weights[i] = x[0][i];
@@ -357,8 +337,7 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
 
 return weights;
 
+
 }
-
-
 
 
