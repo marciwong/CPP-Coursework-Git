@@ -11,7 +11,7 @@
 // git add --all
 // git commit -m "changed"
 // git push
-//g++ -o portfolio main.cpp portfolio.cpp csv.cp
+//g++ -o portfolio mainwo.cpp portfolio.cpp csv.cp
 
 
 #include "portfolio.h"
@@ -74,17 +74,33 @@ int main()
     MatrixOfcompanyMeanRet.push_back(VectorOfcompanyMeanRet);
   }
 
-  cout << MatrixOfcompanyMeanRet[0].size() << endl;
-  cout << MatrixOfcompanyMeanRet.size() << endl;
-
-  std::vector<std::vector<double> > portfolioWeights; 
+  std::vector<std::vector<std::vector<double> > > portfoliosWeightsMatrix;
+  std::vector<std::vector<double> > portfolioTwoDWeights;
+  double noOfTargetReturn = 0.0;
   for (int i = 0; i < ((numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize); i++)
   {
-    Portfolio portfolio(inSampleMat[i], MatrixOfcompanyMeanRet[i], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize);
-    
-    // portfolioWeights.push_back();
+    for (int noOfTargetReturn = 0; noOfTargetReturn < 0.1000001; noOfTargetReturn +=0.005)
+    {
+      Portfolio portfolio(std::vector< std::vector<double> > inSampleMat, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn);  
+      portfolioTwoDWeights.push_back(portfolio.getPortfolioWeights());
+    }
+    portfoliosWeightsMatrix.push_back(portfolioTwoDWeights);
   }
 
+  // cout << portfoliosWeightsMatrix[0].size() << endl;
+  // cout << portfoliosWeightsMatrix.size() << endl;
+  // cout << portfoliosWeightsMatrix[0][0].size() << endl;
+
+//   for (int i = 0; i < 50; i++)
+//   {
+//     for (int j = 0; j < 20; j++ )
+//     {
+//       for (int h = 0; h <83; h++)
+//       {
+//         cout << portfoliosWeightsMatrix[i][j][h];
+//       }
+//     }
+//   }
 }
 
 double string_to_double( const std::string& s )

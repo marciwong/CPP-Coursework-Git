@@ -16,18 +16,18 @@ using namespace std;
 class Portfolio
 {
 	private:
-		int N;
-		std::vector<double> ret;
+		// int N;
+		// std::vector<double> ret;
 		std::vector< std::vector<double> > covariance;
-		double lambda;
-		double miu;
-		std::vector<std::vector<std::vector<double> > > portfolioWeight;
-		double portRet;
+		// double lambda;
+		// double miu;
+		std::vector<double> portfolioWeight;
+		// double portRet;
 
 	public:
-		Portfolio();
-		Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector< double > matrixOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize);
-		std::vector<double> getPortfolioWeights;
+		Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector< double > matrixOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn);
+		std::vector<double> getPortfolioWeights();
+
 };
 
 class Company
