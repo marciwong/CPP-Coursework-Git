@@ -79,7 +79,7 @@ int main()
   double noOfTargetReturn = 0.0;
   for (int i = 0; i < ((numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize); i++)
   {
-    for (int noOfTargetReturn = 0; noOfTargetReturn < 0.1000001; noOfTargetReturn +=0.005)
+    for (double noOfTargetReturn = 0.0; noOfTargetReturn < 0.1000001; noOfTargetReturn +=0.005)
     {
       Portfolio portfolio(std::vector< std::vector<double> > inSampleMat, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn);  
       portfolioTwoDWeights.push_back(portfolio.getPortfolioWeights());

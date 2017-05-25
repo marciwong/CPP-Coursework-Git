@@ -16,7 +16,7 @@ double mean(vector<double> input);
 double meanArray(double input[]);
 double standardDeviation(vector<double> input , double mean);
 std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, int size, int timeLength);
-std::vector<std::vector <double> > getWeights(std::vector< std::vector<double> > Q, double numberOfCompany);
+std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn);
 std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
 std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
 std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
@@ -257,20 +257,19 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
 }
 
 
-std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany,  noOfTargetReturn)
+std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn)
 {   
     std::vector<double> weights;
-    std::vector<double> eightTreezeros;
+    std::vector<double> eightyThreezeros;
     for (int i = 0; i < 83; i++)
     {
-        eightTreezeros.push_back(0);
+        weights.push_back(0);
+        eightyThreezeros.push_back(0);
     }
-
-
-    weights.push_back(eightTreezeros);
 
         std::vector<std::vector<double> > s;
         std::vector<std::vector<double> > b;
+        std::vector<double> bZeros;
         std::vector<std::vector<double> > x;
         std::vector<std::vector<double> > Qx;
         std::vector<double> zeros;
@@ -280,6 +279,7 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
         {
             zeros.push_back(0.0);
             xVector.push_back(0.01204819277);
+            bZeros.push_back(0.0);
 
         }
         zeros.push_back(0.0); //portfolio return
@@ -288,9 +288,10 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
         xVector.push_back(1.0); // adding lagrangian multipliers into the vector
         xVector.push_back(1.0);
 
-        b.push_back(zeros);
-        b.push_back(-1.0 * noOfTargetReturn);
-        b.push_back(-1.0);
+        double negativeTargetReturn = -1 * noOfTargetReturn;
+        bZeros.push_back(negativeTargetReturn);
+        bZeros.push_back(-1.0);
+        b.push_back(bZeros);
         s.push_back(zeros);
         x.push_back(xVector);
         Qx.push_back(zeros);
@@ -354,7 +355,7 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
             weights[i] = x[0][i];
         }
 
-    return weights;
+return weights;
 
 }
 
