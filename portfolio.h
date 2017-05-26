@@ -13,7 +13,17 @@
 
 using namespace std;
 
-class Portfolio
+class timeSeriesPortfolio
+{
+	private:
+		std::vector<std::vector<double> > weights;
+		double portfolioRet;
+
+	public:
+		double getTimeSeriesPortfolioRet();
+};
+
+class Portfolio: public timeSeriesPortfolio
 {
 	private:
 		// int N;
@@ -22,11 +32,14 @@ class Portfolio
 		// double lambda;
 		// double miu;
 		std::vector<double> portfolioWeight;
+		std::vector< std::vector<double> > Q;
 		// double portRet;
 
 	public:
 		Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector< double > matrixOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn);
 		std::vector<double> getPortfolioWeights();
+		std::vector<std::vector<double> > getPortfolioCovariance();
+		std::vector<std::vector<double> > getQ();
 
 };
 

@@ -21,7 +21,7 @@ std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double
 std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
 std::vector<std::vector<double> > scalarMultiplication(double alpha, std::vector<std::vector<double> > A);
 std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
-double transpose(std::vector<std::vector<double> > A);
+std::vector<std::vector<double> > transpose(std::vector<std::vector<double> > A);
 std::vector<double> Minus1D(std::vector<double> A, std::vector<double> B);
 std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
 
@@ -60,29 +60,25 @@ Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector
     tempNegativeRet.push_back(0);
     tempNegativeRet.push_back(0);
 
-    std::vector< std::vector<double> > covarainceMat;
-    covarainceMat = getCovariance(inSampleMat, noOfCompany, inSampleRollingWindowSize);
+    covariance = getCovariance(inSampleMat, noOfCompany, inSampleRollingWindowSize);
 
-    std::vector< std::vector<double> > Q;
+    std::vector< std::vector<double> > Q (noOfCompany + 2, std::vector<double>(noOfCompany + 2));
     std::vector<double> oneDzeros;
-    for (int j = 0; j < noOfCompany; j++)
-    {   
-        Q.push_back(tempEVector);
-    }
 
  
     for (int j = 0; j < noOfCompany; j++)
     {
         for(int k = 0; k < noOfCompany; k++)
         {
-            Q[j][k] = covarainceMat[j][k];   
+            Q[j][k] = covariance[j][k];
         }
-        Q[j].push_back(vectorOfCompanyMeanRet[j]);
-        Q[j].push_back(-1);
+        Q[j][83] = tempNegativeRet[j];
+        Q[j][84] = -1;
+        Q[83][j] = tempNegativeRet[j];
+        Q[84][j] = -1;
     }
-
-    Q.push_back(tempNegativeRet);
-    Q.push_back(tempEVector);
+    // cout << Q[0].size() << endl;
+    // cout << Q[0].size() << endl;
 
     // cout << Q[0][0] << endl;
     // cout << Q[84][84] << endl;
@@ -98,6 +94,16 @@ std::vector<double> Portfolio::getPortfolioWeights()
 {
     return portfolioWeight;
 };
+
+std::vector<std::vector<double> > Portfolio::getPortfolioCovariance()
+{
+    return covariance;
+};
+
+std::vector<std::vector<double> > Portfolio::getQ()
+{
+    return Q;
+}
 
 
 //==========================================================================================================
@@ -173,7 +179,7 @@ std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std
         {
             for(int j = 0; j < A[0].size(); ++j)
             {
-                sum[i][j] += A[i][j] - B[i][j];    
+                sum[i][j] = A[i][j] - B[i][j];    
             }
         }
     return sum;
@@ -197,7 +203,7 @@ std::vector<std::vector<double> > Plus(std::vector<std::vector<double> > A, std:
         {
             for(int j = 0; j < A[0].size(); ++j)
             {
-                sum[i][j] += A[i][j] + B[i][j];    
+                sum[i][j] = A[i][j] + B[i][j];    
             }
         }
     return sum;
@@ -225,6 +231,7 @@ std::vector<std::vector<double> > scalarMultiplication(double alpha, std::vector
     {
         tempA[0][i] = alpha * A[0][i];
     }
+    return tempA;
 };
 
 
@@ -285,7 +292,8 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
     std::vector<double> zeros;
     std::vector<double> xVector;
     std::vector<double> eightyThreezeros;
-    for (int i = 0; i < 83; i++)
+    double negativeTargetReturn = -1 * noOfTargetReturn;
+    for (int i = 0; i < numberOfCompany; i++)
     {
         weights.push_back(0.0);
         eightyThreezeros.push_back(0);
@@ -303,33 +311,35 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
         bZeros.push_back(negativeTargetReturn);
         bZeros.push_back(-1.0);
 
-        double negativeTargetReturn = -1 * noOfTargetReturn;
         b.push_back(bZeros);
         s.push_back(zeros);
         s1.push_back(zeros);
         x.push_back(xVector);
 
         double alpha;
-        double sTs = 1;
         double beta;
 
-        // // //initialise 
+        // //initialise 
         s = Minus(b,Multiplication(Q,x));
         p = s;
-        s1 = s;
+        
+        // cout << Multiplication(Q,x)[0][0] << endl;
+        // cout << Multiplication(Q,p).size() << endl;
+        // cout << transpose(s)[0].size() << endl;
+        // cout << transpose(s).size() << endl;
 
-        while (sTs <= 0.000006)
+        //cout << Multiplication(transpose(s),s)[0][0] / Multiplication(p,Multiplication(Q,p))[0][0] << endl;
+
+        while ( Multiplication(transpose(s),s)[0][0] > 0.000006)
         {
-            alpha = Multiplication(transpose(s),s) / Multiplication(transpose(p),Multiplication(Q,p));
+            alpha = Multiplication(transpose(s),s)[0][0] / Multiplication(p,Multiplication(Q,p))[0][0];
             x = Minus(x, scalarMultiplication(alpha,p));
             s1 = Minus(s, scalarMultiplication(alpha, Multiplication(Q,p)));
-            beta = (Multiplication(transpose(s1),s1)) / (Multiplication(transpose(s),s));
+            beta = (Multiplication(transpose(s1),s1)[0][0]) / (Multiplication(transpose(s),s)[0][0]);
             p = Plus(s1,scalarMultiplication(beta,p));
             s = s1;
-            sTs = Multiplication(transpose(s1),s1);
         }
 
-                int noOfWeights = 0;
         for (int i = 0; i < (x[0].size()-2); i++)
         {
             weights[i] = x[0][i];

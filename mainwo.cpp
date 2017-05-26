@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include <armadillo>
 #include <fstream>
 #include <sstream>
@@ -75,32 +76,54 @@ int main()
   }
 
   std::vector<std::vector<std::vector<double> > > portfoliosWeightsMatrix;
+  std::vector<std::vector<double> > matQ;
+
   std::vector<std::vector<double> > portfolioTwoDWeights;
   double noOfTargetReturn = 0.0;
   for (int i = 0; i < ((numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize); i++)
   {
-    for (double noOfTargetReturn = 0.0; noOfTargetReturn < 0.1000001; noOfTargetReturn +=0.005)
+    for (double noOfTargetReturn = 0.0; noOfTargetReturn < 0.100000; noOfTargetReturn +=0.005)
     {
       Portfolio portfolio(inSampleMat[i], VectorOfcompanyMeanRet, numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, noOfTargetReturn);
+      matQ = portfolio.getQ();
       portfolioTwoDWeights.push_back(portfolio.getPortfolioWeights());
     }
     portfoliosWeightsMatrix.push_back(portfolioTwoDWeights);
   }
 
-  // cout << portfoliosWeightsMatrix[0].size() << endl;
-  // cout << portfoliosWeightsMatrix.size() << endl;
-  // cout << portfoliosWeightsMatrix[0][0].size() << endl;
 
-//   for (int i = 0; i < 50; i++)
-//   {
-//     for (int j = 0; j < 20; j++ )
-//     {
-//       for (int h = 0; h <83; h++)
-//       {
-//         cout << portfoliosWeightsMatrix[i][j][h];
-//       }
-//     }
-//   }
+
+  std::vector<std::vector<double> > outOfSampleReturn;
+  std::vector<double> zeros;
+  for (int i = 0; i < numberOfAssets; i++)
+  {
+    zeros.push_back(0);
+  }
+  for (int i = 0; i < outOfSampleRollingWindowSize; i++)
+  {
+    outOfSampleReturn.push_back(zeros);
+  }
+
+  for (int i = 100; i < numberOfDays; i += 12)
+  {
+    for (int k = 0; k < outOfSampleRollingWindowSize; k++)
+    {
+      for (int j = 0; j < numberOfAssets; j++)
+      {
+        outOfSampleReturn[k][j] = returnVector[j][k+i];
+      }
+    }
+  }
+
+  // ofstream myfile;
+  //   myfile.open ("portfolios.csv");
+  //   for (int i = 0; i < 85; i++)
+  //       {for(int j = 0;j < 85;j++)
+  //           {myfile << matQ[i][j] << ",";}
+  //           myfile << "\n";
+  //       }
+  //   myfile.close();
+
 }
 
 double string_to_double( const std::string& s )
@@ -168,6 +191,8 @@ std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (int inSam
   }
   return tempBacktest;
 }
+
+
 
 
 
