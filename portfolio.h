@@ -13,34 +13,38 @@
 
 using namespace std;
 
-class timeSeriesPortfolio
+double mean(vector<double> input);
+double meanArray(double input[]);
+double standardDeviation(vector<double> input , double mean);
+std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, int size, int timeLength);
+std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn);
+std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+std::vector<std::vector<double> > scalarMultiplication(double alpha, std::vector<std::vector<double> > A);
+std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
+std::vector<std::vector<double> > transpose(std::vector<std::vector<double> > A);
+std::vector<double> Minus1D(std::vector<double> A, std::vector<double> B);
+std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
+
+class Portfolio
 {
 	private:
-		std::vector<std::vector<double> > weights;
-		double portfolioRet;
-
-	public:
-		double getTimeSeriesPortfolioRet();
-};
-
-class Portfolio: public timeSeriesPortfolio
-{
-	private:
-		// int N;
-		// std::vector<double> ret;
-		std::vector< std::vector<double> > covariance;
-		// double lambda;
-		// double miu;
-		std::vector<double> portfolioWeight;
+		std::vector< std::vector<double> > inSampleCovariance;
+		std::vector< std::vector<double> > outOfSampleCovariance;
+		std::vector< std::vector<double> > outOfSampleAverageReturn;
+		double actualAverageReturn;
+		std::vector<std::vector<double > > portfolioWeight;
 		std::vector< std::vector<double> > Q;
-		// double portRet;
+		double portfolioCovariance;
 
 	public:
-		Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector< double > matrixOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn);
-		std::vector<double> getPortfolioWeights();
-		std::vector<std::vector<double> > getPortfolioCovariance();
+		Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector< double > matrixOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn, std::vector<std::vector<double> > outOfSampleReturn);
+		std::vector<std::vector<double> > getPortfolioWeights();
+		std::vector<std::vector<double> > getPortfolioInSampleCovariance();
+		std::vector<std::vector<double> > getPortfolioOutOfSampleCovariance();
 		std::vector<std::vector<double> > getQ();
-
+		double getPortfolioCovariance();
+		double getPortfolioAverageReturn();
 };
 
 class Company

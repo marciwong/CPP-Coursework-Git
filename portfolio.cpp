@@ -12,19 +12,6 @@
 
 using namespace std;
 
-double mean(vector<double> input);
-double meanArray(double input[]);
-double standardDeviation(vector<double> input , double mean);
-std::vector< std::vector<double> > getCovariance( std::vector< std::vector<double> > returnVector, int size, int timeLength);
-std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn);
-std::vector<std::vector <double> > Multiplication(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
-std::vector<std::vector<double> > Minus(std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
-std::vector<std::vector<double> > scalarMultiplication(double alpha, std::vector<std::vector<double> > A);
-std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std::vector<std::vector<double> > B);
-std::vector<std::vector<double> > transpose(std::vector<std::vector<double> > A);
-std::vector<double> Minus1D(std::vector<double> A, std::vector<double> B);
-std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
-
 Company::Company(){ };
 
 Company::Company(std::vector<std::vector<double> > input, int i, int timeLength)
@@ -45,8 +32,9 @@ double Company::getCompanyMeanRet()
  return meanRet;
 };
 
-Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn)
+Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn, std::vector<std::vector<double > > outOfSampleReturn)
 {   
+
     std::vector<double> tempEVector;
     std::vector<double> tempNegativeRet;
 
@@ -55,12 +43,24 @@ Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector
         tempEVector.push_back(-1);
         tempNegativeRet.push_back(vectorOfCompanyMeanRet[j] * -1);
     }
+
+    outOfSampleAverageReturn.push_back(tempEVector);
+
     tempEVector.push_back(0);
     tempEVector.push_back(0);
     tempNegativeRet.push_back(0);
     tempNegativeRet.push_back(0);
 
-    covariance = getCovariance(inSampleMat, noOfCompany, inSampleRollingWindowSize);
+    for (int k = 0; k < 83; k++)
+    {
+        for (int i = 0; i < outOfSampleRollingWindowSize; i++)
+        {
+            outOfSampleAverageReturn[0][i] =  mean(outOfSampleReturn[k]);
+        }   
+    }
+
+    inSampleCovariance = getCovariance(inSampleMat, noOfCompany, inSampleRollingWindowSize);
+    outOfSampleCovariance = getCovariance(outOfSampleReturn, noOfCompany, outOfSampleRollingWindowSize);
 
     std::vector< std::vector<double> > Q (noOfCompany + 2, std::vector<double>(noOfCompany + 2));
     std::vector<double> oneDzeros;
@@ -70,34 +70,34 @@ Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector
     {
         for(int k = 0; k < noOfCompany; k++)
         {
-            Q[j][k] = covariance[j][k];
+            Q[j][k] = inSampleCovariance[j][k];
         }
         Q[j][83] = tempNegativeRet[j];
         Q[j][84] = -1;
         Q[83][j] = tempNegativeRet[j];
         Q[84][j] = -1;
     }
-    // cout << Q[0].size() << endl;
-    // cout << Q[0].size() << endl;
 
-    // cout << Q[0][0] << endl;
-    // cout << Q[84][84] << endl;
+    std::vector <double> tempPortfolioWeight(noOfCompany);
+    std::vector <std::vector <double> >portfolioWeightVector;
+    tempPortfolioWeight = getWeights(Q, noOfCompany, noOfTargetReturn);
+    portfolioWeightVector.push_back(tempPortfolioWeight);
 
-    portfolioWeight = getWeights(Q, noOfCompany, noOfTargetReturn);
+    portfolioCovariance = Multiplication(transpose(portfolioWeightVector),Multiplication(outOfSampleCovariance,portfolioWeightVector))[0][0];
+    
+    portfolioWeight.push_back(tempPortfolioWeight);
 
-    // cout << portfolioWeight[0].size() << endl;
-    // cout << portfolioWeight.size() << endl;
-
+    actualAverageReturn = Multiplication(transpose(outOfSampleAverageReturn),portfolioWeight)[0][0];
 };  
 
-std::vector<double> Portfolio::getPortfolioWeights()
+std::vector<std::vector<double> > Portfolio::getPortfolioWeights()
 {
     return portfolioWeight;
 };
 
-std::vector<std::vector<double> > Portfolio::getPortfolioCovariance()
+std::vector<std::vector<double> > Portfolio::getPortfolioInSampleCovariance()
 {
-    return covariance;
+    return inSampleCovariance;
 };
 
 std::vector<std::vector<double> > Portfolio::getQ()
@@ -105,13 +105,27 @@ std::vector<std::vector<double> > Portfolio::getQ()
     return Q;
 }
 
+std::vector<std::vector<double> > Portfolio::getPortfolioOutOfSampleCovariance()
+{
+    return outOfSampleCovariance;
+}
+
+double Portfolio::getPortfolioCovariance()
+{
+    return portfolioCovariance;
+}
+
+double Portfolio::getPortfolioAverageReturn()
+{
+    return actualAverageReturn;
+}
 
 //==========================================================================================================
 //outside functions
 
 double mean(vector<double> input)
 {
-       double sum = 0;
+       double sum = 0.0;
        for(int i = 0 ; i < input.size() ; i++ )
        {
           sum += input[i];
@@ -122,7 +136,7 @@ double mean(vector<double> input)
 
 double standardDeviation(vector<double> input , double mean)
 {
-       double sumSq = 0;
+       double sumSq = 0.0;
        for(int i = 0 ; i < input.size() ; i++)
        {
           sumSq += (input[i] - mean) * (input[i] - mean);
@@ -226,7 +240,7 @@ std::vector<std::vector<double> > transpose(std::vector<std::vector<double> > A)
 
 std::vector<std::vector<double> > scalarMultiplication(double alpha, std::vector<std::vector<double> > A)
 {
-    std::vector<std::vector<double> > tempA (A[0].size(),vector <double>(A.size()));
+    std::vector<std::vector<double> > tempA (A.size(),vector <double>(A[0].size()));
     for (int i = 0; i < A[0].size(); i++)
     {
         tempA[0][i] = alpha * A[0][i];
@@ -283,7 +297,8 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
 std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn)
 {   
     std::vector<double> weights;
-    std::vector<std::vector<double> > s;
+    std::vector<std::vector<double> > s; 
+    //(1, vector<double> (numberOfCompany))
     std::vector<std::vector<double> > s1;
     std::vector<std::vector<double> > b;
     std::vector<std::vector<double> > p;
@@ -293,6 +308,7 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
     std::vector<double> xVector;
     std::vector<double> eightyThreezeros;
     double negativeTargetReturn = -1 * noOfTargetReturn;
+    
     for (int i = 0; i < numberOfCompany; i++)
     {
         weights.push_back(0.0);
@@ -323,16 +339,9 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
         s = Minus(b,Multiplication(Q,x));
         p = s;
         
-        // cout << Multiplication(Q,x)[0][0] << endl;
-        // cout << Multiplication(Q,p).size() << endl;
-        // cout << transpose(s)[0].size() << endl;
-        // cout << transpose(s).size() << endl;
-
-        //cout << Multiplication(transpose(s),s)[0][0] / Multiplication(p,Multiplication(Q,p))[0][0] << endl;
-
         while ( Multiplication(transpose(s),s)[0][0] > 0.000006)
         {
-            alpha = Multiplication(transpose(s),s)[0][0] / Multiplication(p,Multiplication(Q,p))[0][0];
+            alpha = Multiplication(transpose(s),s)[0][0] / Multiplication(transpose(p),Multiplication(Q,p))[0][0];
             x = Minus(x, scalarMultiplication(alpha,p));
             s1 = Minus(s, scalarMultiplication(alpha, Multiplication(Q,p)));
             beta = (Multiplication(transpose(s1),s1)[0][0]) / (Multiplication(transpose(s),s)[0][0]);
