@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <armadillo>
 #include <fstream>
 #include <sstream>
 #include <vector>
@@ -23,6 +22,8 @@ using namespace std;
 double string_to_double( const std::string& s );
 void readData(double **data,string fileName);
 std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector);
+std::vector<std::vector<std::vector<double> > > outOfSampleRollingWindow (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector);
+
 
 int main()
 {
@@ -31,7 +32,7 @@ int main()
   int inSampleRollingWindowSize = 100;
   int outOfSampleRollingWindowSize = 12;
   int numberOfRollingWindows = (numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize;
-  
+  int numberOfPortfolioReturns = 20; 
 
   double **returnMatrix = new double*[numberOfAssets]; //matrix to store the return data by allocating memroy for return data
   for (int i =0; i< numberOfAssets; i++)
@@ -39,18 +40,7 @@ int main()
   string fileName = "asset_returns.csv";
   readData(returnMatrix,fileName);
   
-  std::vector<vector<double> > returnVector;//(83,vector<double>(83));
-  std::vector<double> zeroVector;
-
-  for (int i = 0; i < numberOfDays; i++)
-  {
-    zeroVector.push_back(0);
-  }
-
-  for (int i = 0; i < numberOfAssets; i++)
-  {
-    returnVector.push_back(zeroVector);;
-  }
+  std::vector<vector<double> > returnVector (numberOfAssets,vector<double>(numberOfDays));
 
   for (int i = 0; i < numberOfAssets; i++)
    {
@@ -60,48 +50,32 @@ int main()
    }
    }
 
-  std::vector<std::vector<std::vector<double> > > inSampleMat = inSampleRollingWindow(inSampleRollingWindowSize, outOfSampleRollingWindowSize, numberOfAssets, numberOfDays, returnVector);
-  std::vector<double> VectorOfcompanyMeanRet;
-  std::vector<std::vector<double> > MatrixOfcompanyMeanRet;
-  std::vector<Company> vectorOfCompany;
-  std::vector<std::vector<Company> > rollingCompanyMat;
+  std::vector<std::vector<std::vector<double> > > inSampleReturn = inSampleRollingWindow (inSampleRollingWindowSize, outOfSampleRollingWindowSize, numberOfAssets, numberOfDays, returnVector);
+  std::vector<std::vector<std::vector<double> > > outOfSampleReturn = outOfSampleRollingWindow (inSampleRollingWindowSize, outOfSampleRollingWindowSize, numberOfAssets, numberOfDays, returnVector);
 
-  for  (int j = 0; j < ((numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize); j++)
+  std::vector<double> VectorOfcompanyMeanRet (numberOfAssets);
+  std::vector<std::vector<double> > matrixOfCompanyMeanReturn;
+
+  for  (int j = 0; j < numberOfRollingWindows; j++)
   {
     for (int i = 0 ; i < numberOfAssets; i++)
     {
-  		  Company company(inSampleMat[j],i, inSampleRollingWindowSize);
-  		  VectorOfcompanyMeanRet.push_back(company.getCompanyMeanRet());
+  		  Company company(inSampleReturn[j],i, inSampleRollingWindowSize);
+  		  VectorOfcompanyMeanRet[i] = (company.getCompanyMeanRet());
     }
-    MatrixOfcompanyMeanRet.push_back(VectorOfcompanyMeanRet);
+    matrixOfCompanyMeanReturn.push_back(VectorOfcompanyMeanRet);
   }
 
-  std::vector<std::vector<std::vector<double> > > portfoliosWeightsMatrix;
-  std::vector<std::vector<double> > matQ;
+  std::vector<std::vector<double> > oosAverageReturn (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
+  std::vector<std::vector<double> > oosCovariance (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
 
-  std::vector<std::vector<std::vector<double> > > outOfSampleReturn (numberOfRollingWindows, vector<vector<double> >(numberOfAssets, vector<double> (outOfSampleRollingWindowSize)));
-  for (int h = 0; h < numberOfRollingWindows; h++)
-  {
-    for (int i = 100; i < numberOfDays; i += 12)
-    {
-      for (int k = 0; k < outOfSampleRollingWindowSize; k++)
-      {
-        for (int j = 0; j < numberOfAssets; j++)
-        {
-          outOfSampleReturn[h][k][j] = returnVector[j][k+i];
-        }
-      }
-    }
-  }
-
-  std::vector<std::vector<Portfolio> > portfolioMatrix (20,vector <Portfolio> ()) ;
-  for (int j = 0; j < 20; j++)
+  for (int j = 0; j < numberOfPortfolioReturns; j++)
   {
     for (int i = 0; i < numberOfRollingWindows; i++)
     {
-      for (double noOfTargetReturn = 0.0; noOfTargetReturn < 0.100000; noOfTargetReturn +=0.005)
+      for (double targetReturn = 0.0; targetReturn < 0.100000; targetReturn +=0.005)
       {
-        Portfolio portfolio(inSampleMat[i], VectorOfcompanyMeanRet, numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, noOfTargetReturn, outOfSampleReturn[i]);
+        Portfolio portfolio(inSampleReturn[i], matrixOfCompanyMeanReturn[i], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, targetReturn, outOfSampleReturn[i]);
         // portfolioMatrix[j][i] = portfolio;
       }
     }
@@ -185,6 +159,35 @@ std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (int inSam
   return tempBacktest;
 }
 
+std::vector<std::vector<std::vector<double> > > outOfSampleRollingWindow (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector)
+{
+  std::vector<std::vector<std::vector<double> > > tempBacktest;
+  std::vector<std::vector<double> > tempReturnVector;
+  std::vector<double> zeros;
+
+  for (int j = 0; j < outOfSampleRollingWindowSize; j++)
+  {
+    zeros.push_back(0);
+  }
+  for (int i = 0; i < numberOfAssets; i++)
+  {
+    tempReturnVector.push_back(zeros);
+  }
+
+  for (int j = 100; j < numberOfDays; j += 12)
+  {
+    for (int k = 0; k < numberOfAssets; k++)
+    {
+      for (int i = 0; i < outOfSampleRollingWindowSize; i++)
+      {   
+        tempReturnVector[k][i] = returnVector[k][(i+j)];
+      }
+    }
+    tempBacktest.push_back(tempReturnVector);
+  }
+
+  return tempBacktest;
+}
 
 
 

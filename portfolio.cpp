@@ -34,22 +34,13 @@ double Company::getCompanyMeanRet()
 
 Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector<double> vectorOfCompanyMeanRet, int noOfCompany, int inSampleRollingWindowSize, int numberOfDays, int outOfSampleRollingWindowSize, double noOfTargetReturn, std::vector<std::vector<double > > outOfSampleReturn)
 {   
-
-    std::vector<double> tempEVector;
-    std::vector<double> tempNegativeRet;
-
-    for (int j = 0; j < noOfCompany ; j++)
+    outOfSampleAverageReturn.resize((1),std::vector<double> (83));
+    std::vector<std::vector<double> > tempNegativeRet (1, std::vector<double> (83));
+    
+    for (int i = 0; i < 83; i++)
     {
-        tempEVector.push_back(-1);
-        tempNegativeRet.push_back(vectorOfCompanyMeanRet[j] * -1);
+        tempNegativeRet[0][i] = -1 * vectorOfCompanyMeanRet[i];
     }
-
-    outOfSampleAverageReturn.push_back(tempEVector);
-
-    tempEVector.push_back(0);
-    tempEVector.push_back(0);
-    tempNegativeRet.push_back(0);
-    tempNegativeRet.push_back(0);
 
     for (int k = 0; k < 83; k++)
     {
@@ -72,20 +63,18 @@ Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector
         {
             Q[j][k] = inSampleCovariance[j][k];
         }
-        Q[j][83] = tempNegativeRet[j];
+        Q[j][83] = tempNegativeRet[0][j];
         Q[j][84] = -1;
-        Q[83][j] = tempNegativeRet[j];
+        Q[83][j] = tempNegativeRet[0][j];
         Q[84][j] = -1;
     }
 
     std::vector <double> tempPortfolioWeight(noOfCompany);
-    std::vector <std::vector <double> >portfolioWeightVector;
     tempPortfolioWeight = getWeights(Q, noOfCompany, noOfTargetReturn);
-    portfolioWeightVector.push_back(tempPortfolioWeight);
+    std::vector <std::vector<double> > portfolioWeights;
+    portfolioWeights.push_back(tempPortfolioWeight);
 
-    portfolioCovariance = Multiplication(transpose(portfolioWeightVector),Multiplication(outOfSampleCovariance,portfolioWeightVector))[0][0];
-    
-    portfolioWeight.push_back(tempPortfolioWeight);
+    portfolioCovariance = Multiplication(transpose(portfolioWeights),Multiplication(outOfSampleCovariance,portfolioWeights))[0][0];
 
     actualAverageReturn = Multiplication(transpose(outOfSampleAverageReturn),portfolioWeight)[0][0];
 };  
@@ -297,8 +286,7 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
 std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn)
 {   
     std::vector<double> weights;
-    std::vector<std::vector<double> > s; 
-    //(1, vector<double> (numberOfCompany))
+    std::vector<std::vector<double> > s;
     std::vector<std::vector<double> > s1;
     std::vector<std::vector<double> > b;
     std::vector<std::vector<double> > p;
@@ -314,7 +302,7 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
         weights.push_back(0.0);
         eightyThreezeros.push_back(0);
         zeros.push_back(0.0);
-        xVector.push_back(0.01204819277);
+        xVector.push_back(1.0/83.0);
         bZeros.push_back(0.0);
     }
 
@@ -339,15 +327,15 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
         s = Minus(b,Multiplication(Q,x));
         p = s;
         
-        while ( Multiplication(transpose(s),s)[0][0] > 0.000006)
-        {
-            alpha = Multiplication(transpose(s),s)[0][0] / Multiplication(transpose(p),Multiplication(Q,p))[0][0];
-            x = Minus(x, scalarMultiplication(alpha,p));
-            s1 = Minus(s, scalarMultiplication(alpha, Multiplication(Q,p)));
-            beta = (Multiplication(transpose(s1),s1)[0][0]) / (Multiplication(transpose(s),s)[0][0]);
-            p = Plus(s1,scalarMultiplication(beta,p));
-            s = s1;
-        }
+        // while ( Multiplication(transpose(s),s)[0][0] > 0.000006)
+        // {
+        //     alpha = Multiplication(transpose(s),s)[0][0] / Multiplication(transpose(p),Multiplication(Q,p))[0][0];
+        //     x = Minus(x, scalarMultiplication(alpha,p));
+        //     s1 = Minus(s, scalarMultiplication(alpha, Multiplication(Q,p)));
+        //     beta = (Multiplication(transpose(s1),s1)[0][0]) / (Multiplication(transpose(s),s)[0][0]);
+        //     p = Plus(s1,scalarMultiplication(beta,p));
+        //     s = s1;
+        // }
 
         for (int i = 0; i < (x[0].size()-2); i++)
         {
