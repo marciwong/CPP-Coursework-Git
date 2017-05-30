@@ -11,7 +11,7 @@
 // git add --all
 // git commit -m "changed"
 // git push
-//g++ -o portfolio mainwo.cpp portfolio.cpp csv.cp
+//g++ -o portfolio mainwo.cpp portfolio.cp csv.cp
 
 
 #include "portfolio.h"
@@ -40,12 +40,12 @@ int main()
   string fileName = "asset_returns.csv";
   readData(returnMatrix,fileName);
   
-  std::vector<vector<double> > returnVector (numberOfAssets,vector<double>(numberOfDays));
+  std::vector< std::vector<double> > returnVector (numberOfAssets, std::vector<double>(numberOfDays));
 
   for (int i = 0; i < numberOfAssets; i++)
-   {
+  {
      for (int j = 0; j < numberOfDays; j++)
-   {
+    {
      returnVector[i][j] = returnMatrix[i][j]; //transforming 2d array into 2d vector
    }
    }
@@ -60,7 +60,7 @@ int main()
   {
     for (int i = 0 ; i < numberOfAssets; i++)
     {
-  		  Company company(inSampleReturn[j],i, inSampleRollingWindowSize);
+  		  Company company(inSampleReturn[j], i, inSampleRollingWindowSize);
   		  VectorOfcompanyMeanRet[i] = (company.getCompanyMeanRet());
     }
     matrixOfCompanyMeanReturn.push_back(VectorOfcompanyMeanRet);
@@ -68,27 +68,28 @@ int main()
 
   std::vector<std::vector<double> > oosAverageReturn (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
   std::vector<std::vector<double> > oosCovariance (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
+  std::vector<std::vector<Portfolio> > portfolioMatrix;
+  double targetReturn = 0.1;
 
-  for (int j = 0; j < numberOfPortfolioReturns; j++)
-  {
-    for (int i = 0; i < numberOfRollingWindows; i++)
-    {
-      for (double targetReturn = 0.0; targetReturn < 0.100000; targetReturn +=0.005)
-      {
-        Portfolio portfolio(inSampleReturn[i], matrixOfCompanyMeanReturn[i], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, targetReturn, outOfSampleReturn[i]);
-        // portfolioMatrix[j][i] = portfolio;
-      }
-    }
-  }
+  // for (int j = 0; j < numberOfPortfolioReturns; j++)
+  // {
+  //   for (int i = 0; i < numberOfRollingWindows; i++)
+  //   {
+  //     for (double targetReturn = 0.0; targetReturn < 0.100000; targetReturn +=0.005)
+  //     {
+        Portfolio portfolio(inSampleReturn[0], matrixOfCompanyMeanReturn[0], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, targetReturn, outOfSampleReturn[0]);
+  //     }
+  //   }
+  // }
 
-  // ofstream myfile;
-  //   myfile.open ("portfolios.csv");
-  //   for (int i = 0; i < 83; i++)
-  //       {for(int j = 0;j < 83;j++)
-  //           {myfile << portfolioMatrix[0][0].getPortfolioOutOfSampleCovariance()[i][j] << ",";}
-  //           myfile << "\n";
-  //       }
-  //   myfile.close();
+  ofstream myfile;
+    myfile.open ("portfolios.csv");
+    for (int i = 0 ; i < 85; i++)
+        {for(int j = 0 ; j < 85; j++)
+            {myfile << portfolio.getQ()[i][j] << ",";}
+            myfile << "\n";
+        }
+    myfile.close();
 }
 
 
@@ -131,49 +132,26 @@ void readData(double **data,string fileName)
 std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector)
 {
   std::vector<std::vector<std::vector<double> > > tempBacktest;
-  std::vector<std::vector<double> > tempReturnVector;
-  std::vector<double> hundredZeros;
-
-  for (int j = 0; j < inSampleRollingWindowSize; j++)
-  {
-    hundredZeros.push_back(0);
-  }
-  for (int i = 0; i < numberOfAssets; i++)
-  {
-    tempReturnVector.push_back(hundredZeros);
-  }
-    for (int j = 0; j < numberOfDays - inSampleRollingWindowSize + 1; j += 12)
+  //(50, vector<vector<double> >(numberOfAssets, vector<double>(inSampleRollingWindowSize)));
+  std::vector<std::vector<double> > tempReturnVector (numberOfAssets, std::vector<double> (inSampleRollingWindowSize));
+    for (int j = 0; j < numberOfDays - inSampleRollingWindowSize; j += 12)
     {
-      for (int h = 0; h < 50; h++)
-      {
-      for (int k =0; k < numberOfAssets; k++)
+      for (int k = 0; k < numberOfAssets; k++)
       {
         for (int i = 0; i < 100; i++)
         {   
             tempReturnVector[k][i] = returnVector[k][(i+j)];
         }
       }
+    tempBacktest.push_back(tempReturnVector);
     }
-  tempBacktest.push_back(tempReturnVector);
-  }
   return tempBacktest;
 }
 
 std::vector<std::vector<std::vector<double> > > outOfSampleRollingWindow (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector)
 {
-  std::vector<std::vector<std::vector<double> > > tempBacktest;
-  std::vector<std::vector<double> > tempReturnVector;
-  std::vector<double> zeros;
-
-  for (int j = 0; j < outOfSampleRollingWindowSize; j++)
-  {
-    zeros.push_back(0);
-  }
-  for (int i = 0; i < numberOfAssets; i++)
-  {
-    tempReturnVector.push_back(zeros);
-  }
-
+  std::vector<std::vector<std::vector<double> > > tempBacktest (50, vector<vector<double> >(numberOfAssets, vector<double>(outOfSampleRollingWindowSize)));
+  std::vector<std::vector<double> > tempReturnVector (numberOfAssets, vector<double> (outOfSampleRollingWindowSize));
   for (int j = 100; j < numberOfDays; j += 12)
   {
     for (int k = 0; k < numberOfAssets; k++)

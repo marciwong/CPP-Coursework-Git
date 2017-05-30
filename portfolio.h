@@ -24,6 +24,7 @@ std::vector<std::vector<double> > Plus (std::vector<std::vector<double> > A, std
 std::vector<std::vector<double> > transpose(std::vector<std::vector<double> > A);
 std::vector<double> Minus1D(std::vector<double> A, std::vector<double> B);
 std::vector<double> Plus1D(std::vector<double> A, std::vector<double> B);
+void printMatrix(std::vector< std::vector<double> > input);
 
 class Portfolio
 {
