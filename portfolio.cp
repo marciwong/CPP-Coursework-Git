@@ -248,96 +248,49 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
 }
 
 
-std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn)
-{   
-    std::vector<double> weights(numberOfCompany);
-    std::vector<std::vector<double> > s;
-    std::vector<std::vector<double> > s1;
-    std::vector<std::vector<double> > b;
-    std::vector<std::vector<double> > p;
-    std::vector<double> bZeros;
-    std::vector<std::vector<double> > x;
-    std::vector<double> zeros;
-    std::vector<double> xVector;
-    double negativeTargetReturn = -1.0 * noOfTargetReturn;
-    
-    for (int i = 0; i < numberOfCompany; i++)
-    {
-        weights.push_back(0.0);
-        zeros.push_back(0.0);
-        xVector.push_back(1.0/83.0);
-        bZeros.push_back(0.0);
-    }
-
-    zeros.push_back(0.0); //portfolio return
-    zeros.push_back(-1.0);
-
-    // adding lagrangian multipliers into the vector
-    xVector.push_back(1.0); // lambda
-    xVector.push_back(1.0); // mu
-
-    bZeros.push_back(negativeTargetReturn);
-    bZeros.push_back(-1.0);
-
-    b.push_back(bZeros);
-    s.push_back(zeros);
-    s1.push_back(zeros);
-    x.push_back(xVector);
-
-    // //initialise 
+std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn) {
     double tolerence = 0.000006;
 
-    s = Minus(b, Multiplication(Q, x));
-    p = s;
-
-    cout << Multiplication(transpose(s), s)[0][0] << endl;
-    // for (int i = 0; i < 85; i++)
-    // {
-    // cout << Multiplication(Q, x)[0][i] << endl;
-    // }
-    // cout << "s" << endl;
-    // printMatrix(s);
-
-    std::vector< std::vector< double > > sTs = Multiplication(transpose(s), s);
-    // cout << "sTs" << endl;
-    // printMatrix(sTs);
-
-    while (sTs[0][0] > tolerence)
-    {
-        double alpha = sTs[0][0] / Multiplication(transpose(p), Multiplication(Q, p))[0][0];
-
-        // cout << "alpha: " << alpha << endl;
-
-        x = Plus(x, scalarMultiplication(alpha, p));
-
-        // cout << "x: " << endl;
-
-        s1 = Minus(s, scalarMultiplication(alpha, Multiplication(Q,p)));
-
-        // cout << "s1: " << endl;
-
-        double beta = Multiplication(transpose(s1),s1)[0][0] / sTs[0][0];
-
-        // cout << "beta: " << beta << endl;
-
-        p = Plus(s1, scalarMultiplication(beta, p));
-
-        // cout << "p: " << endl;
-
-        sTs = Multiplication(transpose(s1), s1);
-
-        // cout << "sTs[0][0]: " << sTs[0][0] << endl;
+    // Set up x
+    std::vector< std::vector<double> > x(1, std::vector<double>(numberOfCompany + 2));
+    for (int i = 0; i < numberOfCompany; i++) {
+        x[0][i] = 1.0 / numberOfCompany;
     }
+    x[0][numberOfCompany] = 1.0; // lambda
+    x[0][numberOfCompany + 1] = 1.0; // mu
 
-    cout << "Finished while loop" << endl;
-
-    for (int i = 0; i < (x[0].size()-2); i++)
-    {
-        weights[i] = x[0][i];
+    // Set up b
+    std::vector< std::vector<double> > b(1, std::vector<double>(numberOfCompany + 2));
+    for (int i = 0; i < numberOfCompany; i++) {
+        b[0][i] = 0.0;
     }
+    b[0][numberOfCompany] = -1.0 * noOfTargetReturn; // -r_p
+    b[0][numberOfCompany + 1] = -1.0;
 
-    return weights;
+    std::vector< std::vector<double> > s = Minus(b, Multiplication(Q, x));
+    std::vector< std::vector<double> > p(s);
 
+    double sTs = Multiplication(transpose(s), s)[0][0];
+    while (sTs > tolerence) {
+        double alpha = sTs / (Multiplication(Multiplication(transpose(p), Q), p)[0][0]);
+
+        x = Plus(x, (scalarMultiplication(alpha, p)));
+
+        std::vector< std::vector<double> > s_plus1 = Minus(s, (scalarMultiplication(alpha, (Multiplication(Q, p)))));
+
+        sTs = Multiplication(transpose(s_plus1), s_plus1)[0][0];
+
+        double beta = (sTs) / (Multiplication(transpose(s), s)[0][0]);
+
+        p = Plus(s_plus1, (scalarMultiplication(beta, p)));
+
+        s = s_plus1;
+
+        cout << "sTs: " << sTs << endl; 
+    }
+    cout << "End of while loop" << endl;
+
+    return x[0];
 }
 
 void printMatrix(std::vector< std::vector<double> > input) {
