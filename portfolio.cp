@@ -46,7 +46,7 @@ Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector
     {
         for (int i = 0; i < outOfSampleRollingWindowSize; i++)
         {
-            outOfSampleAverageReturn[0][i] =  mean(outOfSampleReturn[k]);
+            outOfSampleAverageReturn[0][k] =  mean(outOfSampleReturn[k]);
         }   
     }
 
@@ -79,11 +79,9 @@ Portfolio::Portfolio(std::vector< std::vector<double> > inSampleMat, std::vector
     std::vector <double> tempPortfolioWeight(noOfCompany);
     tempPortfolioWeight = getWeights(Q, noOfCompany, noOfTargetReturn);
     std::vector <std::vector<double> > portfolioWeights;
-    // portfolioWeights.push_back(tempPortfolioWeight);
-
-    // portfolioCovariance = Multiplication(transpose(portfolioWeights),Multiplication(outOfSampleCovariance,portfolioWeights))[0][0];
-
-    // actualAverageReturn = Multiplication(transpose(outOfSampleAverageReturn),portfolioWeight)[0][0];
+    portfolioWeights.push_back(tempPortfolioWeight);
+    portfolioCovariance = Multiplication(transpose(portfolioWeights),Multiplication(outOfSampleCovariance,portfolioWeights))[0][0];
+    actualAverageReturn = Multiplication(transpose(outOfSampleAverageReturn),portfolioWeights)[0][0];
 };  
 
 std::vector<std::vector<double> > Portfolio::getPortfolioWeights()
@@ -237,11 +235,6 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
             {
                 cov[i][k] += (firstCompany[j] - firstCompanyMean) * (secondCompany[j] - secondCompanyMean) / (timeLength - 1);    
             }
-
-            // if (i == 0 && k == 0) {
-            //     cout << cov[i][k] << endl;
-            //}
-
         }
     }
     return cov;
@@ -253,7 +246,8 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
 
     // Set up x
     std::vector< std::vector<double> > x(1, std::vector<double>(numberOfCompany + 2));
-    for (int i = 0; i < numberOfCompany; i++) {
+    for (int i = 0; i < numberOfCompany; i++) 
+    {
         x[0][i] = 1.0 / numberOfCompany;
     }
     x[0][numberOfCompany] = 1.0; // lambda
@@ -261,7 +255,8 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
 
     // Set up b
     std::vector< std::vector<double> > b(1, std::vector<double>(numberOfCompany + 2));
-    for (int i = 0; i < numberOfCompany; i++) {
+    for (int i = 0; i < numberOfCompany; i++) 
+    {
         b[0][i] = 0.0;
     }
     b[0][numberOfCompany] = -1.0 * noOfTargetReturn; // -r_p
@@ -271,7 +266,8 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
     std::vector< std::vector<double> > p(s);
 
     double sTs = Multiplication(transpose(s), s)[0][0];
-    while (sTs > tolerence) {
+    while (sTs > tolerence) 
+    {
         double alpha = sTs / (Multiplication(Multiplication(transpose(p), Q), p)[0][0]);
 
         x = Plus(x, (scalarMultiplication(alpha, p)));
@@ -285,12 +281,15 @@ std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numb
         p = Plus(s_plus1, (scalarMultiplication(beta, p)));
 
         s = s_plus1;
-
-        cout << "sTs: " << sTs << endl; 
     }
-    cout << "End of while loop" << endl;
 
-    return x[0];
+    std::vector<double> weights (numberOfCompany);
+    for (int i = 0; i < weights.size(); i++)
+    {
+        weights[i] = x[0][i];
+    }
+
+    return weights;
 }
 
 void printMatrix(std::vector< std::vector<double> > input) {

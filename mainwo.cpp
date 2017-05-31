@@ -31,7 +31,7 @@ int main()
   int numberOfDays = 700;
   int inSampleRollingWindowSize = 100;
   int outOfSampleRollingWindowSize = 12;
-  int numberOfRollingWindows = (numberOfDays- inSampleRollingWindowSize)/outOfSampleRollingWindowSize;
+  int numberOfRollingWindows = 50;
   int numberOfPortfolioReturns = 20; 
 
   double **returnMatrix = new double*[numberOfAssets]; //matrix to store the return data by allocating memroy for return data
@@ -68,28 +68,48 @@ int main()
 
   std::vector<std::vector<double> > oosAverageReturn (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
   std::vector<std::vector<double> > oosCovariance (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
-  std::vector<std::vector<Portfolio> > portfolioMatrix;
-  double targetReturn = 0.1;
+  double targetReturn = 0.005;
 
-  // for (int j = 0; j < numberOfPortfolioReturns; j++)
-  // {
-  //   for (int i = 0; i < numberOfRollingWindows; i++)
-  //   {
-  //     for (double targetReturn = 0.0; targetReturn < 0.100000; targetReturn +=0.005)
-  //     {
-        Portfolio portfolio(inSampleReturn[0], matrixOfCompanyMeanReturn[0], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, targetReturn, outOfSampleReturn[0]);
-  //     }
-  //   }
-  // }
+  for (int j = 0; j < numberOfPortfolioReturns; j++)
+  {
+    for (int i = 0; i < numberOfRollingWindows; i++)
+    {
+      Portfolio portfolio(inSampleReturn[i], matrixOfCompanyMeanReturn[i], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, targetReturn, outOfSampleReturn[i]);
+      oosAverageReturn[j][i] = portfolio.getPortfolioAverageReturn();
+      oosCovariance[j][i] = portfolio.getPortfolioCovariance();
+
+    }
+    targetReturn += 0.005;
+  }
+
+  // ofstream myfile2;
+  //   myfile2.open ("oosAverageReturn.csv");
+  //   for (int j = 0 ; j < numberOfPortfolioReturns; j++)
+  //       {for(int i = 0 ; i < numberOfRollingWindows; i++)
+  //           {myfile2 << oosAverageReturn[j][i] << ",";}
+  //           myfile2 << "\n";
+  //       }
+  //   myfile2.close();
 
   ofstream myfile;
-    myfile.open ("portfolios.csv");
-    for (int i = 0 ; i < 85; i++)
-        {for(int j = 0 ; j < 85; j++)
-            {myfile << portfolio.getQ()[i][j] << ",";}
+    myfile.open ("oosAverageReturn.csv");
+    for (int j = 0 ; j < numberOfPortfolioReturns; j++)
+        {for(int i = 0 ; i < numberOfRollingWindows; i++)
+            {myfile << oosAverageReturn[j][i] << ",";}
             myfile << "\n";
         }
     myfile.close();
+
+  ofstream myfile1;
+    myfile1.open ("oosCovariance.csv");
+    for (int j = 0 ; j < numberOfPortfolioReturns; j++)
+        {for(int i = 0 ; i < numberOfRollingWindows; i++)
+            {myfile1 << oosCovariance[j][i] << ",";}
+            myfile1 << "\n";
+        }
+    myfile1.close();
+
+
 }
 
 
@@ -150,7 +170,7 @@ std::vector<std::vector<std::vector<double> > > inSampleRollingWindow (int inSam
 
 std::vector<std::vector<std::vector<double> > > outOfSampleRollingWindow (int inSampleRollingWindowSize, int outOfSampleRollingWindowSize, int numberOfAssets, int numberOfDays, std::vector<vector<double> > returnVector)
 {
-  std::vector<std::vector<std::vector<double> > > tempBacktest (50, vector<vector<double> >(numberOfAssets, vector<double>(outOfSampleRollingWindowSize)));
+  std::vector<std::vector<std::vector<double> > > tempBacktest;
   std::vector<std::vector<double> > tempReturnVector (numberOfAssets, vector<double> (outOfSampleRollingWindowSize));
   for (int j = 100; j < numberOfDays; j += 12)
   {
