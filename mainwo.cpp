@@ -31,7 +31,7 @@ int main()
   int numberOfDays = 700;
   int inSampleRollingWindowSize = 100;
   int outOfSampleRollingWindowSize = 12;
-  int numberOfRollingWindows = 50;
+  int numberOfRollingWindows = 49;
   int numberOfPortfolioReturns = 20; 
 
   double **returnMatrix = new double*[numberOfAssets]; //matrix to store the return data by allocating memroy for return data
@@ -68,6 +68,8 @@ int main()
 
   std::vector<std::vector<double> > oosAverageReturn (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
   std::vector<std::vector<double> > oosCovariance (numberOfPortfolioReturns, std::vector<double>(numberOfRollingWindows));
+  std::vector<std::vector<Portfolio> > portfolioMat;
+  std::vector<Portfolio> tempPortfolioVector;
   double targetReturn = 0.005;
 
   for (int j = 0; j < numberOfPortfolioReturns; j++)
@@ -77,25 +79,24 @@ int main()
       Portfolio portfolio(inSampleReturn[i], matrixOfCompanyMeanReturn[i], numberOfAssets, inSampleRollingWindowSize, numberOfDays, outOfSampleRollingWindowSize, targetReturn, outOfSampleReturn[i]);
       oosAverageReturn[j][i] = portfolio.getPortfolioAverageReturn();
       oosCovariance[j][i] = portfolio.getPortfolioCovariance();
-
     }
     targetReturn += 0.005;
   }
 
-  // ofstream myfile2;
-  //   myfile2.open ("oosAverageReturn.csv");
-  //   for (int j = 0 ; j < numberOfPortfolioReturns; j++)
-  //       {for(int i = 0 ; i < numberOfRollingWindows; i++)
-  //           {myfile2 << oosAverageReturn[j][i] << ",";}
-  //           myfile2 << "\n";
-  //       }
-  //   myfile2.close();
-
-  ofstream myfile;
-    myfile.open ("oosAverageReturn.csv");
+  ofstream myfile2;
+    myfile2.open ("oosAverageReturn.csv");
     for (int j = 0 ; j < numberOfPortfolioReturns; j++)
         {for(int i = 0 ; i < numberOfRollingWindows; i++)
-            {myfile << oosAverageReturn[j][i] << ",";}
+            {myfile2 << oosAverageReturn[j][i] << ",";}
+            myfile2 << "\n";
+        }
+    myfile2.close();
+
+  ofstream myfile;
+    myfile.open ("oosReturn.csv");
+    for (int j = 0 ; j < 83; j++)
+        {for(int i = 0 ; i < 12; i++)
+            {myfile << outOfSampleReturn[48][j][i] << ",";}
             myfile << "\n";
         }
     myfile.close();

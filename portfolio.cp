@@ -242,7 +242,7 @@ std::vector< std::vector<double> > getCovariance(std::vector< std::vector<double
 
 
 std::vector<double> getWeights(std::vector< std::vector<double> > Q, double numberOfCompany, double noOfTargetReturn) {
-    double tolerence = 0.000006;
+    double tolerence = 0.000001;
 
     // Set up x
     std::vector< std::vector<double> > x(1, std::vector<double>(numberOfCompany + 2));
